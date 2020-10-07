@@ -3,24 +3,32 @@ h1{font-family: Verdana, Geneva, sans-serif;
   text-align:center;
   font-size: 200%}
 
-h2{font-family: Verdana, Geneva, sans-serif;
-  color:grey;
-  text-align:center;
-  font-size: 150%;
-  font-style: italic;}
+/*h2{font-family: Verdana,Geneva, sans-serif;*/
+/*  color:indianred;*/
+/*  text-align:center;*/
+/*  font-size: 75%;*/
+/*  font-style: italic;}*/
 
-h3 {
+h2{
+  color: navajowhite;
+  font-family:arial;
+  font-size: 80%;
+  text-align: center;
+}
+
+h3{
   font-size: 130%;
   font-weight: bold;
   text-align: center;
   /* 	margin: 0; */
 }
 
-h4 {
+h4{
 	font-size: 120%;
 	font-weight: normal;
 	text-align: center;
           font-style: italic;
+   color:whitesmoke;
 /* 	margin: 0; */
 }
 
