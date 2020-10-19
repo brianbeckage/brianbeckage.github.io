@@ -151,18 +151,16 @@ h5 {
     text-align: center;
 }
 
-p{font-family: sans-serif;
-  color: whitesmoke;
-  /*text-align:center;*/
-  font-size: 1em;
+p{font-family: Arial, Helvetica, sans-serif;
+    color: whitesmoke;
+    /*text-align:center;*/
+    font-size: 1em;
+    line-height: 1.6;
 }
 
 .myPFormat {
-    font-family: arial;
-    /*text-indent: +5%;*/
     margin-left: 2%;
     margin-bottom:2%;
-    font-size: 100%;
     text-align:left;
 }
 
