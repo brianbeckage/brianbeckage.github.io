@@ -111,7 +111,7 @@ h1 {font-family: sans-serif;
  }
 
 h2{
-  color: navajowhite;
+  /*color: navajowhite;*/
   font-family:arial;
   font-size: 80%;
   text-align: center;
@@ -139,6 +139,12 @@ h5 {
   font-weight: bold;
   text-align: center;
   margin: 0;
+}
+
+h6{
+    /*text-decoration: none;*/
+    /*color: navajowhite;*/
+    font-size: 220%;
 }
 
 .centered {
@@ -238,19 +244,22 @@ p{font-family: Arial, Helvetica, sans-serif;
     display: inline-flex;
     list-style: none;
     /*color: #fff;*/
+    /*    color: navajowhite;*/
+    /*font-size: 120%;*/
 }
 
 .navbar ul li {
     width: 120px;
     margin: 15px;
     padding: 15px;
+    text-decoration: none;
+    color: navajowhite;
+    font-size: 120%;
 }
 
 .navbar ul li a{
     text-decoration: none;
     color: navajowhite;
-    /*color: rgb();*/
-    /*font-weight: bold;*/
     font-size: 120%;
 }
 
@@ -297,14 +306,14 @@ table{
 }
 
 a:link {
-  color: white; /* This is color of Publications and Models headers etc. try 'inherit';*/
+  /*color: white; !* This is color of Publications and Models headers etc. try 'inherit';*!*/
   background-color: transparent;
   text-decoration: none;
   font-size: 100%
 }
 
 a:visited {
-  color: navajowhite;
+  /*color: navajowhite;*/
   background-color: transparent;
   text-decoration: none;
 }
@@ -323,7 +332,7 @@ a:active {
 
 th,td {
         text-align: center;
-        color: antiquewhite;
+        /*color: antiquewhite;*/
         height: 70px;
         width:300px;
 }
