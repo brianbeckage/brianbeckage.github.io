@@ -3,278 +3,172 @@
     margin: 0;
     box-sizing: border-box;
 }
-
 body {
   font-family: sans-serif;
   background-color: black;
+    color: white;
+       font-size: 1.2em;
+    line-height: 1.6;
+
+    font-size: 14px;
+    margin-top: 10%;
+    margin-right: 10%;
+    margin-left: 10%;
+    margin-bottom: 10%;
     /*margin: 2em;*/
   /*font-size: 1.1em;*/
-}
-
-/*body {
-  font-family: Verdana, Geneva, sans-serif;
-
-  background-color: black;
-}*/
-
-.myImg {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 300px;
-}
-
-
-h1 {font-family: sans-serif;
-        /*color:white;*/
-        color: #fcfbfb;
-        text-align:center;
-        font-size: 180%;
- }
-
-h2{
-  color: navajowhite;
-  font-family:arial;
-  font-size: 140%;
-  text-align: center;
-}
-
-h3 {
-  color: darkgoldenrod;
-  font-size: 120%;
-  /*font-weight: bold;*/
-  text-align: center;
-  margin: 0;
-}
-
-h4 {
-  color: lightgoldenrodyellow;
-  font-size: 80%;
-  /*font-weight: bold;*/
-  text-align: center;
-  margin: 0;
-}
-
-h5 {
-  color: black;
-  font-size: 120%;
-  font-weight: bold;
-  text-align: center;
-  margin: 0;
-}
-
-.centered {
-     margin-left:auto;
-     margin-right:auto;
-}
-
-.container{
-    width: 100%;
-    text-align: center;
 }
 
 p{font-family: Arial, Helvetica, sans-serif;
     color: whitesmoke;
     /*text-align:center;*/
-    font-size: 1em;
+    font-size: 1.2em;
     line-height: 1.6;
 }
 
-.myPFormat {
-    margin-left: 2%;
-    margin-bottom:2%;
-    text-align:left;
-}
-
-.myIndent {
-    /*color: white;*/
-    /*font-family:arial;*/
-    /*font-family: arial;*/
-    text-indent: +5%;
-    /*margin-left: 2%;*/
-    /*margin-bottom:2%;*/
-    /*font-size: 100%;*/
-    /*text-align:left;*/
-}
-
-.quotes {
-    /*color: white;*/
-    /*font-family:arial;*/
-    font-family: arial;
-    text-indent: -7%;
-    margin-left: 12%;
-    margin-bottom:2%;
-    font-size: 100%;
-    text-align:left;
-}
-
-.citations {
-    /*color: white;*/
-    /*font-family:arial;*/
-    text-indent: -7%;
-    margin-left: 12%;
-    margin-bottom:2%;
-    font-size: 100%;
-    text-align:left;
-}
-
-
-/* unvisited link */
-.citations a:link {
-  color: lightslategrey;
-}
-
-/* visited link */
-.citations a:visited {
-  color: darkgoldenrod;
-}
-
-/* mouse over link */
-.citations a:hover {
-  color: darkslategray;
-}
-
-/* selected link */
-.citations a:active {
-  color: blue;
-}
-
-
-.mainColor {
-  color:navajowhite;
-}
-
-.poetryColor {
-  color: #ff4500;
-}
-
-
-/*Menu Bar******************************************************/
-.navbar {
-    /*overflow: hidden;*/
-    background-color: darkslategray;
-    text-align: center;
-}
-
-.navbar ul {
-    display: inline-flex;
-    list-style: none;
-    /*color: #fff;*/
-}
-
-.navbar ul li {
-    width: 120px;
-    margin: 15px;
-    padding: 15px;
-}
-
-.navbar ul li a{
-    text-decoration: none;
+h1 {
+    font-size:24px;
+    font-weight:bold;
+    text-align:center;
     color: navajowhite;
-    /*color: rgb();*/
-    /*font-weight: bold;*/
-    font-size: 120%;
 }
 
-.active,.navbar ul li:hover {
-    background: lightgray;
-    background: hsla(176, 9%, 75%, 0.48);
-    display: block;
-    /*opacity: 0.5;*/
-    /*border-radius: 30px;*/
+h2 {
+font-size:28px;
+font-weight:bold;
+margin: 0;
+padding: 0;
 }
 
-
-.subMenu{
-    display:none;
+h3 {
+	font-size: 18px;
+	/*font-weight: bold;*/
+	text-align: center;
+	margin: 0;
+    color: whitesmoke;
 }
 
-.navbar ul li:hover .subMenu{
-    display: block;
-    position: absolute;
-    background: darkslategrey;
-    margin-top: 15px;
-    margin-left: -15px;
-    /*margin-right: 10px;*/
+h4 {
+font-size:14px;
+font-weight:normal;
+text-align:left;
+margin: 10% 10% 10% 10%  ;
 }
 
-.navbar ul li:hover .subMenu ul{
-    display: block;
-    margin: 5px;
-    box-shadow: 0px 20px 20px 10px darkred;
-    /*box-shadow: darkred;*/
-    text-align: center;
+ul {
+    margin-left: 15px;
 }
 
+ul li{
+      margin-left:25px;
+}
 
-/* Poetry ***************************************/
-table{
-  /*bordercolor:#FFFFFF;*/
-  border:0;
-  /*align:center;*/
-  /*height:30%;*/
-  width:80%;
-  margin-left:10%;
-  margin-right:10%;
+ol li{
+    margin-left:25px;
+    font-size: 1.2em;
+    line-height: 1.6;
 }
 
 a:link {
-  color: white; /* This is color of Publications and Models headers etc. try 'inherit';*/
-  background-color: transparent;
-  text-decoration: none;
-  font-size: 100%
+	color: navajowhite;
+    text-decoration: none;
 }
 
 a:visited {
-  color: navajowhite;
-  background-color: transparent;
-  text-decoration: none;
+	color: #FFF;
 }
 
-a:hover {
-  color: darkgoldenrod;
-  background-color: transparent;
-  text-decoration: underline;
+table {
+    /*width: 80%;*/
+    /*background-color: lightgrey;*/
+    vertical-align: middle;
+    /*display:block;*/
+    width: 100%;
+    height: 80px;
 }
 
-a:active {
-  color: blue;
-  background-color: transparent;
-  text-decoration: underline;
+/*table {*/
+/*width: 300px;*/
+/*height: 200px;*/
+/*}*/
+
+table, th, td {
+    border: 1px solid whitesmoke;
+    border-collapse: collapse;
+     vertical-align: middle;
+    /*display: table-cell;*/
+    /*    width: 300px;*/
+    /*height: 200px;*/
 }
 
-th,td {
-        text-align: center;
-        color: antiquewhite;
-        height: 70px;
-        width:300px;
+/*#schedule tr:nth-child(even){background-color: #333333;}*/
+
+
+
+.table2 tr:nth-of-type(1n) td {
+    border-top: 2px solid white;
 }
 
-/* Models table ***************************************/
+.table2 tr:nth-child(even) {
+  background-color: #333333;
+}
 
-    .item1 { grid-area: header; }
-    .item2 { grid-area: center; }
-    .item3 { grid-area: left; }
-    .item4 { grid-area: right; }
-    .item5 { grid-area: footer; }
+.table2 tr:hover {background-color: gray;}
 
-    .grid-container {
-        display: grid;
-        grid-template-areas:
-                'header header header header header header'
-                'left left center center right right'
-                'footer footer footer footer footer footer';
-        grid-gap: 10px;
-        background-color: #2196F3;
-        padding: 10px;
-    }
+.table2 {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+    border: 3px solid white;
+}
 
-    .grid-container > div {
-        background-color: rgba(255, 255, 255, 0.8);
-        text-align: center;
-        padding: 10px 10px;
-        /*font-size: 30px;*/
-    }
+.table2 th {
+    color:wheat;
+    vertical-align:middle;
+    text-align:center;
+    border:1px solid white; }
+
+.table2 td {
+    color:wheat;
+    vertical-align:middle;
+    text-align:center;
+    border:1px solid white; }
+
+.table2 thead th:nth-child(1) {
+  width: 7%;
+}
+
+.table2 thead th:nth-child(2) {
+  width: 7%;
+}
+
+.table2 thead th:nth-child(3) {
+  width: 7%;
+}
+
+.table2 thead th:nth-child(4) {
+  width: 10%;
+}
+
+.table2 thead th:nth-child(5) {
+  width: 23%;
+}
+
+.table2 thead th:nth-child(6) {
+  width: 23%;
+}
+
+.table2 thead th:nth-child(7) {
+  width: 23%;
+}
+
+th, td {
+  padding: 20px;
+}
+
+
+
+
 
 
 
