@@ -30,6 +30,14 @@ p{font-family: Arial, Helvetica, sans-serif;
     line-height: 1.6;
 }
 
+p.centered{font-family: Arial, Helvetica, sans-serif;
+    color: whitesmoke;
+    /*text-align:center;*/
+    font-size: 1.2em;
+    line-height: 1.6;
+    text-align: center;
+}
+
 h1 {
     font-size:24px;
     font-weight:bold;
@@ -204,33 +212,40 @@ table, th, td {
     border:1px solid white; }
 
 .table3 thead th:nth-child(1) {
-  width: 11%;
+  width: 5%;
 }
 
 .table3 thead th:nth-child(2) {
-  width: 7%;
+  width: 6%;
 }
 
 .table3 thead th:nth-child(3) {
-  width: 7%;
+  width: 5%;
 }
 
 .table3 thead th:nth-child(4) {
-  width: 9%;
+  width: 14%;
 }
 
 .table3 thead th:nth-child(5) {
-  width: 22%;
+  width: 14%;
 }
 
 .table3 thead th:nth-child(6) {
-  width: 22%;
+  width: 14%;
 }
 
 .table3 thead th:nth-child(7) {
-  width: 22%;
+  width: 14%;
 }
 
+.table3 thead th:nth-child(8) {
+  width: 14%;
+}
+
+.table3 thead th:nth-child(9) {
+  width: 14%;
+}
 
 
 
