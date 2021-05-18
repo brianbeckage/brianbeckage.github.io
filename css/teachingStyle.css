@@ -177,11 +177,6 @@ table, th, td {
 
 
 
-
-
-
-
-
 .table3 tr:nth-of-type(1n) td {
     border-top: 2px solid white;
 }
@@ -246,6 +241,42 @@ table, th, td {
 .table3 thead th:nth-child(9) {
   width: 14%;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.table4 {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+    border: 3px solid white;
+}
+
+.table4 th {
+    color:wheat;
+    vertical-align:middle;
+    text-align:center;
+    border:1px solid white; }
+
+.table4 td {
+    color:wheat;
+    vertical-align:middle;
+    text-align:center;
+    border:1px solid white; }
 
 
 
