@@ -220,7 +220,7 @@ p{font-family: Arial, Helvetica, sans-serif;
 
 /* selected link */
 .citations a:active {
-  color: blue;
+  color: lightslategrey;
 }
 
 
@@ -293,20 +293,9 @@ p{font-family: Arial, Helvetica, sans-serif;
     text-align: center;
 }
 
-
-/* Poetry ***************************************/
-table{
-  /*bordercolor:#FFFFFF;*/
-  border:0;
-  /*align:center;*/
-  /*height:30%;*/
-  width:80%;
-  margin-left:10%;
-  margin-right:10%;
-}
-
 a:link {
   /*color: white; !* This is color of Publications and Models headers etc. try 'inherit';*!*/
+    color: white;
   background-color: transparent;
   text-decoration: none;
   font-size: 100%
@@ -328,6 +317,38 @@ a:active {
   color: blue;
   background-color: transparent;
   text-decoration: underline;
+}
+
+/* Poetry ***************************************/
+table{
+  /*bordercolor:#FFFFFF;*/
+  border:0;
+  /*align:center;*/
+  /*height:30%;*/
+  width:80%;
+  margin-left:10%;
+  margin-right:10%;
+}
+
+
+a.poetry:link {
+  color: navajowhite;
+
+}
+
+a.poetry:visited {
+  color: darkslategrey;
+  text-decoration: none;
+}
+
+.poetry a:hover {
+  color: darkslategrey;
+  /*background-color: transparent;*/
+  /*text-decoration: underline;*/
+}
+
+.poetry a:active {
+  color: slateblue;
 }
 
 th,td {
