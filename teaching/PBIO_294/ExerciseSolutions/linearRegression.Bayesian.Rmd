@@ -146,9 +146,9 @@ myCode <- nimbleCode({
   }
 })
 
-myConstants <- list(n = dim(d3)[1])
-myData <- list(weight = d3$weight, height = d3$height)
-myInits <- list(intercept = mean(d3$weight), beta = 0, sigma = sqrt(var(d3$weight)))
+myConstants <- list(n = dim(d2)[1], weight = d2$weight)
+myData <- list(height = d2$height)
+myInits <- list(intercept = mean(d3$height), beta = 0, sigma = sqrt(var(d2$height)))
 ```
 
 
