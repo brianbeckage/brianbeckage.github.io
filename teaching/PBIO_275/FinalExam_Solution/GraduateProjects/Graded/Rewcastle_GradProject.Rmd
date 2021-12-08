@@ -1,0 +1,191 @@
+---
+title: "Rewcastle Grad Project"
+author: "Kenna Rewcastle"
+output: html_document
+---
+
+```{r}
+setwd("~/Desktop")
+dat_raw<-read.csv("bog_2015.csv")
+
+# Calculate total enzyme activity for the 3 carbon degrading enzymes and the 3 nutrient degrading enzymes, add it to the big database.
+enzyC_all<-(dat_raw$AG+dat_raw$BG+dat_raw$CBH)
+enzyNut_all<-(dat_raw$PHOS+dat_raw$NAG+dat_raw$LAP)
+dat_all<-cbind(dat_raw,enzyC_all,enzyNut_all) 
+
+# Remove replicates for which percent water saturation samples were lost (i.e. remove NAs)
+library(dplyr)
+dat_noNA<-filter(dat_all,per..saturation!="NA")
+
+```
+
+
+#### MODEL FOR TOTAL RESPIRATION
+Model (linear): Y = beta0 + beta1(carbon enzyme activity) + beta2(nutrient enzyme activity) + beta3*(peat water saturation)
+Y = respiration
+
+
+```{r}
+library(rjags)
+
+# Create objects for response variable and predictors of interest for this project (total respiration)
+enzyC<-dat_noNA$enzyC_all
+enzyNut<-dat_noNA$enzyNut_all
+sat<-dat_noNA$per..saturation
+resp<-dat_noNA$D5.CO2
+respdat<-data.frame(enzyC,enzyNut,sat,resp)
+```
+
+```{r}
+modelStringRESP<-"
+model {
+  for (i in 1:N){
+    resp[i] ~ dnorm(mu[i],inv.var)
+    mu[i] <- beta0 + beta1 * enzyC[i] + beta2 * enzyNut[i] + beta3 * sat[i]
+  }
+  
+  beta0 ~ dnorm(0, 1)
+  beta1 ~ dnorm(0, 1)
+  beta2 ~ dnorm(0, 1)
+  beta3 ~ dnorm(0, 1)
+  inv.var ~ dgamma(0.01, 0.01)
+  sigma <- 1/sqrt(inv.var)
+  
+}
+"
+writeLines(modelStringRESP, con='modelStringRESP.jags.txt')
+```
+
+```{r}
+jags <- jags.model('modelStringRESP.jags.txt',
+                   data = list('resp' = resp,
+                               'enzyC' = enzyC,
+                               'enzyNut' = enzyNut,
+                               'sat' = sat,
+                               'N' = length(resp)),
+                   inits<-list(
+                       list('beta0'=1,'beta1'=2,'beta2'=0,'beta3'=1),
+                       list('beta0'=0,'beta1'=0,'beta2'=0,'beta3'=0),
+                       list('beta0'=0.1,'beta1'=0.2,'beta2'=0.3,'beta3'=0.2),
+                       list('beta0'=-1,'beta1'=0,'beta2'=1,'beta3'=5)),
+                   n.chains = 4,
+                   n.adapt = 100)
+```
+
+```{r}
+update(jags, 1000)
+
+jags.samples(jags,
+             c('beta0', 'beta1', 'beta2', 'beta3'),
+             100000)
+
+# b0 = -0.2919984, b1 = -0.003051364, b2 = 0.001794885, b3 = 0.09073245
+```
+
+
+```{r}
+library(coda)
+codaSamples<-coda.samples(jags, c('beta0','beta1','beta2','beta3'), 100000, 1) 
+plot(codaSamples, trace = TRUE, density = TRUE)
+summary(codaSamples)
+
+#### The only parameters for which the 95% confidence interval surrounding the parameter estimate does not include 0 are beta1, carbon degrading enzymes, and beta3, which is the coefficient for the peat water saturation parameter.
+```
+
+#### MODEL FOR 13C RELEASE (D13)
+Model (linear): Y = beta0 + beta1(carbon enzyme activity) + beta2(nutrient enzyme activity) + beta3*(peat water saturation)
+Y = d13
+
+```{r}
+library(rjags)
+
+# Create objects for response variable and predictors of interest for this project (d13)
+d13_dat<-filter(dat_noNA,carbon=="label")
+enzyC_d13<-d13_dat$enzyC_all
+enzyNut_d13<-d13_dat$enzyNut_all
+sat_d13<-d13_dat$per..saturation
+d13<-d13_dat$D5.d13
+d13dat<-data.frame(enzyC_d13,enzyNut_d13,sat_d13,d13)
+```
+
+```{r}
+modelString_d13<-"
+model {
+  for (i in 1:N){
+    d13[i] ~ dnorm(mu[i],inv.var)
+    mu[i] <- beta0 + beta1 * enzyC_d13[i] + beta2 * enzyNut_d13[i] + beta3 * sat_d13[i]
+  }
+  
+  beta0 ~ dnorm(0, 1)
+  beta1 ~ dnorm(0, 1)
+  beta2 ~ dnorm(0, 1)
+  beta3 ~ dnorm(0, 1)
+  inv.var ~ dgamma(0.01, 0.01)
+  sigma <- 1/sqrt(inv.var)
+  
+}
+"
+writeLines(modelString_d13, con='modelString_d13.jags.txt')
+```
+
+```{r}
+
+jagsd13 <- jags.model('modelString_d13.jags.txt',
+                   data = list('d13' = d13,
+                               'enzyC_d13' = enzyC_d13,
+                               'enzyNut_d13' = enzyNut_d13,
+                               'sat_d13' = sat_d13,
+                               'N' = length(d13)),
+                   inits<-list(
+                       list('beta0'=1,'beta1'=2,'beta2'=0,'beta3'=1),
+                       list('beta0'=0,'beta1'=0,'beta2'=0,'beta3'=0),
+                       list('beta0'=0.1,'beta1'=0.2,'beta2'=0.3,'beta3'=0.2),
+                       list('beta0'=-1,'beta1'=0,'beta2'=1,'beta3'=5)),
+                   n.chains = 4,
+                   n.adapt = 100)
+                
+```
+
+```{r}
+update(jagsd13, 1000)
+
+jags.samples(jagsd13,
+             c('beta0', 'beta1', 'beta2', 'beta3'),
+             100000)
+
+# b0 = 0.01363778, b1 = 0.2665086, b2 = -0.3165486, b3 = 0.64233
+```
+
+
+```{r}
+library(coda)
+codaSamplesd13<-coda.samples(jagsd13, c('beta0','beta1','beta2','beta3'), 100000, 1) 
+plot(codaSamplesd13, trace = TRUE, density = TRUE)
+summary(codaSamples)
+
+#### The only parameter for which the 95% confidence interval surrounding the parameter estimate does not include 0 is beta1, which is the coefficient for the carbon degrading enzymes.
+```
+
+##### Compare JAGS output to least squares mean used in LM.
+
+```{r}
+respMod<-lm(resp~enzyC+enzyNut+sat)
+summary(respMod) # parameter estimates and lm coefficients are essentially identical.
+
+d13Mod<-lm(d13~enzyC_d13+enzyNut_d13+sat_d13) 
+summary(d13Mod) # parameter estimates do not match lm coefficients, especially for the intercept. Possibly because there is too little data.
+```
+
+```{r}
+### Grid of density plots for both models side by side
+plot(codaSamplesd13[,'beta0'], trace = FALSE, density = TRUE, main="Density of 13C Respiration Beta 0",xlab="")
+plot(codaSamplesd13[,'beta1'], trace = FALSE, density = TRUE, main="Density of 13C Respiration Beta 1",xlab="")
+plot(codaSamplesd13[,'beta2'], trace = FALSE, density = TRUE, main="Density of 13C Respiration Beta 2",xlab="")
+plot(codaSamplesd13[,'beta3'], trace = FALSE, density = TRUE, main="Density of 13C Respiration Beta 3",xlab="")
+plot(codaSamples[,'beta0'], trace = FALSE, density = TRUE, main="Density of Total Respiration Beta 0",xlab="")
+plot(codaSamples[,'beta1'], trace = FALSE, density = TRUE, main="Density of Total Respiration Beta 1",xlab="")
+plot(codaSamples[,'beta2'], trace = FALSE, density = TRUE, main="Density of Total Respiration Beta 2",xlab="")
+plot(codaSamples[,'beta3'], trace = FALSE, density = TRUE, main="Density of Total Respiration Beta 3",xlab="")
+
+```
+

@@ -1,0 +1,18 @@
+
+model {
+  for (i in 1:N){
+    seedlost[i] ~ dbinom(theta.hat[i])
+    logit(theta.hat[i]) <- beta0[i] + beta1 * gap[i]
+    beta0[i] ~ dgamma((mu)/(sd),mu/(sd))
+  }
+  for (j in 1:N1)
+    log(mu[j]) = beta2 + beta3 x mass[j] - beta4 * (mass[j])^2 
+  }
+    sd ~ dgamma(0.001,0.001)
+
+  beta1 ~ dnorm(0, 100)
+  beta2 ~ dnorm(0, 100)
+  beta3 ~ dnorm(0, 100)
+  beta4 ~ dnorm(0, 100)
+}
+

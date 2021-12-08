@@ -1,0 +1,117 @@
+---
+title: "JAGS"
+output: html_notebook
+---
+
+# Install JAGS from https://sourceforge.net/projects/mcmc-jags/?source=typ_redirect
+
+```{r}
+setwd("~/Documents/Web/Teaching/PBIO_294/Exercises/11.1.2017")
+```
+
+
+### Some required libraries:
+
+```{r}
+
+### If not already installed:
+install.packages("rjags")
+install.packages("runjags")
+install.packages("coda")
+
+```
+
+
+Generating some data to recapture using a linear regression
+
+```{r}
+N <- 1000
+x <- 1:N
+epsilon <- rnorm(N, 0, 1)
+y <- x + epsilon
+
+# or below for replicates
+
+nReps<-10
+x<-seq(from=0,to=100,by=1)
+x<-rep(x,nReps)
+b0<-1.0; b1<-0.2
+ymean<-b0+b1*x
+y<-rnorm(n=length(ymean),mean=ymean,sd=1.5)
+N<-length(y)
+
+```
+
+
+Writing simulated data to external file
+```{r}
+write.table(data.frame(X = x, Y = y),
+            file = 'lm_example1.data',
+            row.names = FALSE,
+            col.names = TRUE)
+```
+
+JAGS model
+
+```{r}
+modelString<-"
+model {
+  for (i in 1:N){
+    y[i] ~ dnorm(y.hat[i], tau)
+    y.hat[i] <- a + b * x[i]
+  }
+  a ~ dnorm(0, .0001)
+  b ~ dnorm(0, .0001)
+  tau <- pow(sigma, -2)
+  sigma ~ dunif(0, 100)
+}
+"
+writeLines(modelString, con='LM_ex1.txt')
+
+```
+
+Compiling model
+
+```{r}
+require('rjags')
+
+jags <- jags.model('LM_ex1.txt',
+                   data = list('x' = x,
+                               'y' = y,
+                               'N' = N),
+                   inits<-list(
+                       list('a'=1,'b'=2,'sigma'=5),
+                       list('a'=1,'b'=.2,'sigma'=0.5),
+                       list('a'=.1,'b'=2,'sigma'=7),
+                       list('a'=2,'b'=5,'sigma'=1)),
+                   n.chains = 4,
+                   n.adapt = 100)
+```
+
+Updating model
+
+```{r}
+update(jags, 1000)
+```
+
+Sampoling from model
+
+```{r}
+codaSamples<-coda.samples(jags, c('a','b','sigma'), 1000, 1)
+```
+
+Examining fit using CODA
+
+```{r}
+require(coda)
+plot(codaSamples, trace = FALSE, density = TRUE)
+summary(codaSamples)
+traceplot(codaSamples)
+```
+
+Compared to b0 = 1.0; b1 = 0.2, sd=1.5
+
+
+### Exercise 1:  Fit the same model as above using the library runjags wih 4 parallel chains. See K 8.7 for guidance.
+
+### Exercise 2:  Fit a linear model to the height vs weight data (e.g., model wt<-b0 + b1*ht) from 6 Sep 2017 using JAGS.

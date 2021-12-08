@@ -1,0 +1,300 @@
+---
+title: "Hierarchical model: Baseball batting averages"
+output: html_notebook
+---
+
+```{r}
+setwd("~/Documents/Web/Teaching/PBIO_294/Exercises/11.29.2017")
+getwd()
+```
+
+K's code used in book to automate the analysis
+This works but sort of blackboxish...let's parse the code further below.
+
+```{r}
+# Read the data
+myData = read.csv('BattingAverage.csv')
+# Load the relevant model into R's working memory:
+source('Jags-Ybinom-XnomSsubjCcat-MbinomBetaOmegaKappa.R')
+# Generate the MCMC chain:
+mcmcCoda = genMCMC( data=myData,
+                    zName='Hits', NName='AtBats', sName='Player',
+                    cName='PriPos', numSavedSteps=11000, thinSteps=20 )
+# Display diagnostics of chain, for specified parameters:
+for ( parName in c('omega[1]','omega0','kappa[1]','kappa0', 'theta[1]') ) {
+  diagMCMC( codaObject=mcmcCoda, parName=parName,
+            saveName=fileNameRoot, saveType=graphFileType )
+}
+# Get summary statistics of chain:
+summarylnfo = smryMCMC( mcmcCoda, compVal=NULL )
+# Display posterior information:
+plotMCMC( mcmcCoda, data=myData,
+          zName='Hits', NName='AtBats', sName='Player', cName='PriPos',
+          compVal=NULL,
+          diffCList=list( c('Pitcher','Catcher'),
+                          c('Catcher','1st Base') ),
+          diffSList=list( c('Kyle Blanks','Bruce Chen'),
+                          c('Mike Leake','Wandy Rodriguez'),
+                          c('Andrew McCutchen','Brett Jackson'),
+                          c('ShinSoo Choo','Ichiro Suzuki') ),
+          compValDiff=0.0 )
+
+```
+
+
+Parsing K's code from above:
+
+```{r}
+# setwd("~/Documents/Web/Teaching/PBIO_294/Exercises/11.29.2017")
+getwd()
+```
+
+```{r}
+myData = read.csv('BattingAverage.csv')
+data=myData
+zName='Hits'
+NName='AtBats'
+sName='Player'
+cName='PriPos'
+z = data[[zName]]
+N = data[[NName]]
+s = data[[sName]]
+c = data[[cName]]
+Nsubj = length(unique(s))
+Ncat =  length(unique(c))
+  # Specify the data in a list, for later shipment to JAGS:
+dataList = list(
+  z = z ,
+  N = N ,
+  c = as.numeric(c) , # c in JAGS is numeric, in R is possibly factor
+  Nsubj = Nsubj ,
+  Ncat = Ncat
+)
+```
+
+Note: alternative beta(a,b) parametization is beta( w (k-2)+1, (1-w) (k-2)+1 ) where w is mode and k is concentration.  mode w = (a − 1)/(a + b − 2) 
+
+
+
+```{r}
+  modelString = "
+  model {
+
+    # subjects, e.g., individual players
+    for ( sIdx in 1:Nsubj ) {
+      z[sIdx] ~ dbin( theta[sIdx] , N[sIdx] )
+      theta[sIdx] ~ dbeta( omega[c[sIdx]]*(kappa[c[sIdx]]-2)+1 , 
+                           (1-omega[c[sIdx]])*(kappa[c[sIdx]]-2)+1 ) 
+    }
+    
+    # categories, e.g., positions
+    for ( cIdx in 1:Ncat ) {
+      omega[cIdx] ~ dbeta( omegaO*(kappaO-2)+1 , 
+                           (1-omegaO)*(kappaO-2)+1 )
+      kappa[cIdx] <- kappaMinusTwo[cIdx] + 2
+      kappaMinusTwo[cIdx] ~ dgamma( 0.01 , 0.01 ) # mean=1 , sd=10 (generic vague)
+    }
+    omegaO ~ dbeta( 1.0 , 1.0 ) 
+    #omegaO ~ dbeta( 1.025 , 1.075 ) # mode=0.25 , concentration=2.1
+    kappaO <- kappaMinusTwoO + 2
+    kappaMinusTwoO ~ dgamma( 0.01 , 0.01 )  # mean=1 , sd=10 (generic vague)
+
+    # Contrasts
+    c1Minusc3<-omega[1]-omega[3] # difference in modes of pitcher and 1st base positions
+    c1Minusc3Prob<-step(c1Minusc3) # returns a 1 if c1Minusc3 > 0
+
+    #kappaMinusTwoO ~ dgamma( 1.01005 , 0.01005012 )  # mode=1 , sd=100
+    #kappaMinusTwoO ~ dgamma( 1.105125 , 0.1051249 )  # mode=1 , sd=10
+    #kappaMinusTwoO ~ dgamma( 1.105125 , 0.01051249 )  # mode=10 , sd=100
+  }
+  " # close quote for modelString
+  writeLines( modelString , con="TEMPmodel.txt" )
+```
+
+
+```{r}
+require(rjags)
+# require(runjags)
+require(coda)
+
+# parameters = c( "theta","omega","kappa","omegaO","kappaO") 
+parameters = c( "omegaO","kappaO","c1Minusc3","c1Minusc3Prob","omega") 
+adaptSteps = 500 # Number of steps to adapt the samplers
+burnInSteps = 1000  
+jagsModel = jags.model( "TEMPmodel.txt" , data=dataList )
+update( jagsModel , n.iter=burnInSteps )
+  
+
+  # codaSamples<-coda.samples(jags, c('beta0','beta1'), 10000, 1)
+codaSamples = coda.samples( jagsModel, variable.names=parameters, 
+                                n.iter=10000, 
+                                thin=5 )
+plot(codaSamples, trace = FALSE, density = TRUE)
+# plot(post_fit,par=c('beta0','beta1')) 
+HPDinterval(codaSamples)
+summary(codaSamples)
+traceplot(codaSamples)
+  
+# jagsModel = jags.model( "TEMPmodel.txt" , data=dataList , inits=initsList , 
+#                             n.chains=nChains , n.adapt=adaptSteps )
+# codaSamples = coda.samples( jagsModel, variable.names=parameters, 
+#                                 n.iter=ceiling(numSavedSteps*thinSteps/nChains), 
+#                                 thin=thinSteps )
+
+```
+
+
+
+
+*Things to do:*
+
+1.  Add gamma hyperpriors to the concentration parameter k for the position categories.  This will allow us to examine the disribution of the concentration parameter k for the postion categories.
+
+```{r}
+  modelString = "
+  model {
+
+    # subjects, e.g., individual players
+    for ( sIdx in 1:Nsubj ) {
+      z[sIdx] ~ dbin( theta[sIdx] , N[sIdx] )
+      theta[sIdx] ~ dbeta( omega[c[sIdx]]*(kappa[c[sIdx]]-2)+1 , 
+                           (1-omega[c[sIdx]])*(kappa[c[sIdx]]-2)+1 ) 
+    }
+    
+    # categories, e.g., positions
+    for ( cIdx in 1:Ncat ) {
+      omega[cIdx] ~ dbeta( omegaO*(kappaO-2)+1 , 
+                           (1-omegaO)*(kappaO-2)+1 )
+      kappa[cIdx] <- kappaMinusTwo[cIdx] + 2
+      kappaMinusTwo[cIdx] ~ dgamma( Sk , Rk ) # was 0.01, 0.01 -> mean=1 , sd=10 (generic vague) *** NEW
+    }
+    omegaO ~ dbeta( 1.0 , 1.0 ) 
+    #omegaO ~ dbeta( 1.025 , 1.075 ) # mode=0.25 , concentration=2.1
+    kappaO <- kappaMinusTwoO + 2
+    kappaMinusTwoO ~ dgamma( 0.01 , 0.01 )  # mean=1 , sd=10 (generic vague)
+    Sk ~ dgamma( 0.01 , 0.01 )  # mean=1 , sd=10 (generic vague) *** NEW
+    Rk ~ dgamma( 0.01 , 0.01 )  # mean=1 , sd=10 (generic vague) *** NEW
+
+    # Contrasts
+    c1Minusc3<-omega[1]-omega[3] # difference in modes of pitcher and 1st base positions
+    c1Minusc3Prob<-step(c1Minusc3) # returns a 1 if c1Minusc3 > 0
+
+    #kappaMinusTwoO ~ dgamma( 1.01005 , 0.01005012 )  # mode=1 , sd=100
+    #kappaMinusTwoO ~ dgamma( 1.105125 , 0.1051249 )  # mode=1 , sd=10
+    #kappaMinusTwoO ~ dgamma( 1.105125 , 0.01051249 )  # mode=10 , sd=100
+  }
+  " # close quote for modelString
+  writeLines( modelString , con="TEMPmodel.txt" )
+```
+
+```{r}
+require(rjags)
+# require(runjags)
+require(coda)
+
+# parameters = c( "theta","omega","kappa","omegaO","kappaO") 
+parameters = c( "omegaO","kappaO","c1Minusc3","c1Minusc3Prob","omega","Sk","Rk") 
+adaptSteps = 500 # Number of steps to adapt the samplers
+burnInSteps = 1000  
+jagsModel = jags.model( "TEMPmodel.txt" , data=dataList )
+update( jagsModel , n.iter=burnInSteps )
+  
+
+  # codaSamples<-coda.samples(jags, c('beta0','beta1'), 10000, 1)
+codaSamples = coda.samples( jagsModel, variable.names=parameters, 
+                                n.iter=10000, 
+                                thin=5 )
+plot(codaSamples, trace = FALSE, density = TRUE)
+# plot(post_fit,par=c('beta0','beta1')) 
+HPDinterval(codaSamples)
+summary(codaSamples)
+traceplot(codaSamples)
+  
+# jagsModel = jags.model( "TEMPmodel.txt" , data=dataList , inits=initsList , 
+#                             n.chains=nChains , n.adapt=adaptSteps )
+# codaSamples = coda.samples( jagsModel, variable.names=parameters, 
+#                                 n.iter=ceiling(numSavedSteps*thinSteps/nChains), 
+#                                 thin=thinSteps )
+
+```
+
+
+2.  Add a comparison for two specific players to decide if their batting averages are significantly different.
+
+
+```{r}
+  modelString = "
+  model {
+
+    # subjects, e.g., individual players
+    for ( sIdx in 1:Nsubj ) {
+      z[sIdx] ~ dbin( theta[sIdx] , N[sIdx] )
+      theta[sIdx] ~ dbeta( omega[c[sIdx]]*(kappa[c[sIdx]]-2)+1 , 
+                           (1-omega[c[sIdx]])*(kappa[c[sIdx]]-2)+1 ) 
+    }
+    
+    # categories, e.g., positions
+    for ( cIdx in 1:Ncat ) {
+      omega[cIdx] ~ dbeta( omegaO*(kappaO-2)+1 , 
+                           (1-omegaO)*(kappaO-2)+1 )
+      kappa[cIdx] <- kappaMinusTwo[cIdx] + 2
+      kappaMinusTwo[cIdx] ~ dgamma( Sk , Rk ) # was 0.01, 0.01 -> mean=1 , sd=10 (generic vague) *** NEW
+    }
+    omegaO ~ dbeta( 1.0 , 1.0 ) 
+    #omegaO ~ dbeta( 1.025 , 1.075 ) # mode=0.25 , concentration=2.1
+    kappaO <- kappaMinusTwoO + 2
+    kappaMinusTwoO ~ dgamma( 0.01 , 0.01 )  # mean=1 , sd=10 (generic vague)
+    Sk ~ dgamma( 0.01 , 0.01 )  # mean=1 , sd=10 (generic vague) *** NEW
+    Rk ~ dgamma( 0.01 , 0.01 )  # mean=1 , sd=10 (generic vague) *** NEW
+
+    # Contrasts
+    c1Minusc3<-omega[1]-omega[3] # difference in modes of pitcher and 1st base positions
+    c1Minusc3Prob<-step(c1Minusc3) # returns a 1 if c1Minusc3 > 0
+
+    p1Minusp2<-theta[1]-theta[2] # difference in batting average of player 1 and player 2
+    p1Minusp2Prob<-step(p1Minusp2) # returns a 1 if p1Minusp2 > 0
+
+    #kappaMinusTwoO ~ dgamma( 1.01005 , 0.01005012 )  # mode=1 , sd=100
+    #kappaMinusTwoO ~ dgamma( 1.105125 , 0.1051249 )  # mode=1 , sd=10
+    #kappaMinusTwoO ~ dgamma( 1.105125 , 0.01051249 )  # mode=10 , sd=100
+  }
+  " # close quote for modelString
+  writeLines( modelString , con="TEMPmodel.txt" )
+```
+
+```{r}
+require(rjags)
+# require(runjags)
+require(coda)
+
+# parameters = c( "theta","omega","kappa","omegaO","kappaO") 
+parameters = c( "omegaO","kappaO","c1Minusc3","c1Minusc3Prob","omega","Sk","Rk","p1Minusp2","p1Minusp2Prob") 
+adaptSteps = 500 # Number of steps to adapt the samplers
+burnInSteps = 1000  
+jagsModel = jags.model( "TEMPmodel.txt" , data=dataList )
+update( jagsModel , n.iter=burnInSteps )
+  
+
+  # codaSamples<-coda.samples(jags, c('beta0','beta1'), 10000, 1)
+codaSamples = coda.samples( jagsModel, variable.names=parameters, 
+                                n.iter=10000, 
+                                thin=5 )
+plot(codaSamples, trace = FALSE, density = TRUE)
+# plot(post_fit,par=c('beta0','beta1')) 
+HPDinterval(codaSamples)
+summary(codaSamples)
+traceplot(codaSamples)
+  
+# jagsModel = jags.model( "TEMPmodel.txt" , data=dataList , inits=initsList , 
+#                             n.chains=nChains , n.adapt=adaptSteps )
+# codaSamples = coda.samples( jagsModel, variable.names=parameters, 
+#                                 n.iter=ceiling(numSavedSteps*thinSteps/nChains), 
+#                                 thin=thinSteps )
+
+```
+
+3.  Code this model in Stan.
+
+
+
+

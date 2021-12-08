@@ -1,0 +1,215 @@
+---
+title: "Kunal Palawat Final December 11, 2017"
+output:
+  html_notebook: default
+---
+
+Set Working Directory. Change this location if not using Kunal's Laptop.
+```{r, echo=TRUE}
+setwd("~/Desktop/UVM/3rd Year/Fall Semester/PBIO294")
+```
+
+
+1. (30 points) An ecologist is interested in the intermediate disturbance hypothesis (IDH) 
+that postulates that the highest species richness should be found at intermediate levels of 
+disturbance. Write a  likelihood function to estimate the  
+parameters for a quadratic regression models given in Beckage and Stout 2000 
+(http://www.uvm.edu/~bbeckage/Manuscripts/BeckageStout.corrected.2000.jvs.pdf), 
+but assuming a Poisson likelihood with a log link function.
+
+The data may be read using:
+```{r}
+
+srDat<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/idh.csv",sep=',',header=TRUE)
+srDat
+
+```
+
+
+Likelihood Function
+```{r}
+
+nllPoi=function(parVec, burns, sr){
+    b0=parVec[1]
+    b1=parVec[2]
+    b2=parVec[3]
+  yHat=exp(b0+b1*burns+b2*burns^2)
+  nllik=-sum(dpois(x=sr,lambda=yHat,log=TRUE))
+
+  return(nllik)
+}
+
+```
+
+Initialize Betas
+```{r}
+
+parVec=c(.1, .1, .1)
+
+```
+
+Obtain MLEs for betas. Obtain nll value.
+```{r}
+
+outPois=optim(par=parVec,fn=nllPoi,method="L-BFGS-B",lower=c(-Inf,-Inf),upper=c(Inf,Inf), burns=srDat$nFires, sr=srDat$sr)
+outPois$par
+outPois$val
+
+```
+
+Simulate data from regression parameters.
+```{r}
+
+yHat=exp( 2.05578969+0.44405624*burns+-0.04586403*burns^2)
+
+```
+
+Plot line of best fit from the simulated data over scatterplot of data.
+```{r}
+
+plot(y=srDat$sr, x=srDat$nFires)
+  lines(x=srDat$nFires, yHat, type='l', col='purple', lwd=3)
+  
+```
+
+2. (30 points) Repeat exercise 1 except now fitting the model using either Rstan or Rjags.  You must write your own Stan/JAGS model, meaning that you can not use one of the Stan helper libraries such as the brms or rstanarm libraries. 
+
+Write Model String in JAGS to a text file.
+```{r, echo=TRUE}
+library(rjags)
+
+modelString<-"
+model {
+  for (i in 1:N){
+    yHat[i] ~ dpois(p[i])
+    log(p[i]) <- beta0 + beta1*burns[i] + beta2*burns[i]^2
+  }
+  beta0 ~ dnorm(0, .0001)
+  beta1 ~ dnorm(0, .0001)
+  beta2 ~ dnorm(0, .0001)
+}
+"
+writeLines(modelString, con='burnsReg.jags.txt')
+```
+
+Run the model string in JAGS and initialize the four chains. If more chains are wanted, change the "n.chains" number and add the appropriate number of lists of initial paramter values.
+```{r}
+jags <- jags.model('burnsReg.jags.txt',
+                   data = list('yHat' = srDat$sr,
+                               'burns' = srDat$nFires,
+                               'N' = length(srDat$nFires)),
+                   inits<-list(
+                       list('beta0'=2,'beta1'=.4, 'beta2'=1),
+                       list('beta0'=4,'beta1'=1, 'beta2'=-1),
+                       list('beta0'=1,'beta1'=1, 'beta2'=1),
+                       list('beta0'=2,'beta1'=.4, 'beta2'=-1)),
+                   n.chains = 4,
+                   n.adapt = 100)
+```
+
+Update Model and sample.
+```{r}
+update(jags, 1000)
+
+jags.samples(jags,
+             c('beta0', 'beta1', 'beta2'),
+             10000)
+```
+
+Use coda library to sample and plot data.
+```{r}
+library(coda)
+codaSamples<-coda.samples(jags, c('beta0','beta1', 'beta2'), 10000, 1)
+plot(codaSamples, trace = FALSE, density = TRUE)
+summary(codaSamples)
+traceplot(codaSamples)
+```
+
+Run gelman.diag which asseses convergence. Values less than 1.1 are typically seen as good, values above indicate that the chains have not converged. Run gelman.plot which shows how converged the chains are over the sampling period. These statistics indicate that beta0, beta1, and beta2 are converged.
+```{r}
+
+gelman.diag(codaSamples, confidence=.95)
+gelman.plot(codaSamples, confidence=.95)
+
+```
+
+3. (40 points) An ecologist expects seed predation to be influenced by the presence of openings (gaps) in the forest overstory and seed mass. The effect of seed mass on predation is expected be quadratic:  Small seeds will be less predated because they offer a lower energetic reward while larger seeds will be too difficult to process, so that medium sized seeds will be most predated.  The effect of a gap is additive with lower predation expected in gaps because seed predators avoid areas of open canopy. The ecologist models the data as a hierarchical logistic regression, assuming that the seed masses are known without observation error.  The model has the form:
+
+
+Read data and assign different parts of the data frame to variables. JAGS does not appreciate when I use seedDF$ in the code.
+```{r}
+seedDF<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/seeds.csv",sep=',',header=TRUE)
+mass=seedDF$mass
+seedLost=seedDF$seedLost
+gap=seedDF$gap
+```
+
+Write model string and save it as a text file to be called upon later. Originally, the first prior was sd^2~dgamma(...), but JAGS would not accept the "^". So, I just wrote the prior as sd~dgamma(...) and used sd^2 in the beta0 equation. But then, I called sd^2, "variance" and put that into the beta0 equation as just "variance". I compared estimates between the two and they are slightly different when run on 1000 iterations. There may be a higher discrepancy if run 100,000 times.
+```{r}
+library(rjags)
+seedList=list(seedLost=seedLost,mass=mass,N=length(mass), gap=gap)
+
+modelString="
+model{
+    for (i in 1:N) {
+      seedLost[i] ~ dbern(theta[i])
+      logit(theta[i]) = beta0[i] + beta1*gap[i] 
+      beta0[i] ~ dgamma(mu[i]^2/variance,mu[i]/variance) 
+      log(mu[i]) = beta2 + beta3*mass[i] - beta4*(mass[i])^2      
+    }
+  
+  #priors
+    variance ~ dgamma(0.001,0.001)
+    beta1 ~ dnorm(0,100)
+    beta2 ~ dnorm(0,100)
+    beta3 ~ dnorm(0,100)
+    beta4 ~ dnorm(0,100)
+
+  }
+"
+writeLines (modelString, con="Finalmodel.txt")
+```
+
+
+Write JAGS model, initialize paramters, and update model with burn in, which is 1000. 
+```{r}
+require(rjags)
+
+jagsModel=jags.model("Finalmodel.txt",
+                     data=seedList,
+                     inits= list(
+                       list('beta1'=2,'beta2'=.4, 'beta3'=1, 'beta4'=1),
+                       list('beta1'=4,'beta2'=1, 'beta3'=-1, 'beta4'=1),
+                       list('beta1'=1,'beta2'=1, 'beta3'=1, 'beta4'=1),
+                       list('beta1'=2,'beta2'=.4, 'beta3'=-1, 'beta4'=1)),
+                   n.chains = 4,
+                   n.adapt = 100)
+burnInSteps=1000
+update(jagsModel, n.inter=burnInSteps)
+
+```
+
+Run model, obtain summaries and traceplots of betas. Plots for each iteration can be published, but that code has been commented out for now due to the long runtime. The percentiles are reported in addition to beta means, SD, and SE. The trace plots indicate that more interations need to be run for the values to visually converge. To obtain more accurate measurements of convergence, run gelman diagnostics on the chains as done in the next chunk.
+```{r}
+
+require(coda)
+codaSamples=coda.samples(jagsModel, variable.names = c("beta1", "beta2", "beta3", "beta4"), n.iter=10000, thin=10)
+#plot(codaSamples, trace=FALSE, density=TRUE)
+HPDinterval(codaSamples)
+summary(codaSamples)
+traceplot(codaSamples)
+
+```
+
+Run gelman.diag which asseses convergence. Values less than 1.1 are typically seen as good, values above indicate that the chains have not converged. Run gelman.plot which shows how converged the chains are over the sampling period. These statistics indicate that beta1 and beta2 are converged. But beta3 and beta4 require more iterations until convergence. The plots indicate similar things except that the scales are different for each one. They cannot be compared to each other easily because of this.
+```{r}
+
+gelman.diag(codaSamples, confidence=.95)
+gelman.plot(codaSamples, confidence=.95)
+
+```
+
+
+
+
+

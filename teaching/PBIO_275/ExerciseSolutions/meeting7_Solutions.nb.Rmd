@@ -1,0 +1,187 @@
+---
+title: "Meeting 7 Solutions"
+output: html_notebook
+---
+
+Multivariate regression.  Calculate the AIC value for the regression of height 
+vs weight for the !Kung data  with and without sex using  lm(), and your own 
+likelihood function.  Based on these AIC scores, which is the better model?. 
+
+
+First using lm()
+
+
+```{r}
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d2 <- d[ d$age >= 18 , ]
+# head(d2)
+# plot(height~weight, data=d2)
+
+# Scaling the predictor variable weight and the response varible height
+# both to mean = 0, sd = 1.
+d3<-d2
+d3$weight<-standardize(d3$weight)
+
+```
+
+Fit a linear model using lm()
+
+height~Normal(mu,sigma)
+mu<-intercept + betaWeight * Weight
+
+
+```{r}
+out<-lm(height~weight,data=d3)
+summary(out,correlation=TRUE) # # correlation about -0.99
+
+plot(height~weight, data=d3)
+abline(a=out$coefficients[1],b=out$coefficients[2])
+library(stats)
+sigma(out)
+AIC(out)
+```
+
+Adding a model with sex
+
+height~Normal(mu,sigma)
+mu<-intercept + betaWeight * Weight + betaMale * male
+
+```{r}
+outSex<-lm(height~weight + male, data=d3)
+summary(outSex,correlation=TRUE) # # correlation about -0.99
+
+library(stats)
+sigma(outSex)
+AIC(outSex)
+BIC(outSex)
+```
+
+AIC of model with weight + sex-> 2026.211 
+AIC of model with weight-> 2148.024
+
+
+
+
+Fitting with my own likelihood function
+
+Likelihood function with weight:
+
+```{r}
+nllNormReg<-function(parVec,data=d3){
+  wt<-data$weight
+  ht<-data$height
+  intercept<-parVec[1]
+  betaW<-parVec[2]
+  mySd<-parVec[3]
+  htPred<-intercept+betaW*wt
+  nllik<- -sum(dnorm(x=ht,mean=htPred,sd=mySd,log=TRUE))
+  #browser()
+  return(nllik)
+}
+```
+
+
+```{r}
+parVec<-c(1.0,2.0,2.0) # Need some starting parameters for gradient climbing/descending methods
+outLM<-optim(par=parVec,fn=nllNormReg,method="L-BFGS-B",
+               lower=c(-Inf,-Inf,0.0001),upper=c(Inf,Inf,Inf))
+# 
+AIC<- 2*outLM$value + 2*3
+
+outLM$par
+AIC
+
+```
+
+
+
+
+
+Likelihood function with weight and sex:
+
+```{r}
+nllNormReg<-function(parVec,data=d3){
+  wt<-data$weight
+  ht<-data$height
+  male<-data$male
+  intercept<-parVec[1]
+  betaW<-parVec[2]
+  betaM<-parVec[3]
+  mySd<-parVec[4]
+  htPred<-intercept+betaW*wt + betaM*male
+  nllik<- -sum(dnorm(x=ht,mean=htPred,sd=mySd,log=TRUE))
+  #browser()
+  return(nllik)
+}
+```
+
+
+```{r}
+parVec<-c(1.0,2.0,2.0,2.0) # Need some starting parameters for gradient climbing/descending methods
+outLM<-optim(par=parVec,fn=nllNormReg,method="L-BFGS-B",
+               lower=c(-Inf,-Inf,-Inf,0.0001),upper=c(Inf,Inf,Inf,Inf))
+# 
+AIC<- 2*outLM$value + 2*4
+
+outLM$par
+AIC
+
+```
+
+
+
+ 7E1.  State the three motivating criteria that define information entropy. Try to express each in your own words.
+ 
+ _The criteria for this measure of “uncertainty” are:_
+ 
+_(1) Continuity. The measure is not discrete, but it may be bounded. So it can have a minimum and maximum, but it must be continuous in between._
+
+_(2) Increasing with the number of events. When more distinct things can happen,and all else is equal, there is more uncertainty than when fewer things can happen._
+
+_(3) Additivity. This is hardest one to understand for most people. Additivity is desirable because it means we can redefine event categories without changing the amount of uncertainty._
+ 
+ 
+7E3.  Suppose a four-sided die is loaded such that, when tossed onto a table, it shows “1” 20%, “2” 25%, “3” 25%, and “4” 30% of the time. What is the entropy of this die?
+
+```{r}
+-(0.2*log(0.2) + 2*0.25*log(0.25) + 0.3*log(0.3))
+```
+
+
+7H1.  In 2007, The Wall Street Journal published an editorial (“We’re Number One, Alas”) with a graph of corporate tax rates in 29 countries plotted against tax revenue. A badly fit curve was drawn in (reconstructed at right), seemingly by hand, to make the argument that the relationship between tax rate and tax revenue increases and then declines, such that higher tax rates can actually produce less tax revenue. I want you to actually fit a curve to these data, found in data(Laffer). Consider models that use tax rate to predict tax revenue. Compare, using WAIC or PSIS, a straight-line model to any curved models you like. What do you conclude about the relationship between tax rate and tax revenue? (See the associated figure for this problem  in the book.)
+
+```{r}
+data(Laffer)
+plot(tax_revenue~tax_rate, data=Laffer)
+```
+
+```{r}
+library(rethinking)
+
+modelLM<- quap(
+    alist(
+        tax_revenue ~ dnorm( mu , sigma ) ,
+        mu <- intercept + beta*tax_rate,
+        intercept ~ dnorm( 100 , 100 ) ,
+        beta~dnorm(0,5),
+        sigma ~ dunif( 0 , 50 )
+    ) , data=Laffer )
+
+modelQuad <- quap(
+    alist(
+        tax_revenue ~ dnorm( mu , sigma ) ,
+        mu <- intercept + beta*tax_rate + beta2*tax_rate^2,
+        intercept ~ dnorm( 100 , 100 ) ,
+        beta~dnorm(0,5),
+        beta2~dnorm(0,5),
+        sigma ~ dunif( 0 , 50 )
+    ) , data=Laffer )
+
+# precis(modelQUAP)
+# WAIC(modelQUAP)
+compare(modelLM, modelQuad , func=WAIC) 
+
+```
+

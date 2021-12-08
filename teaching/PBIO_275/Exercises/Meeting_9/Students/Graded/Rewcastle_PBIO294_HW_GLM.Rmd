@@ -1,0 +1,193 @@
+---
+title: "Rewcastle_PBIO294_GLM_HW"
+author: "Kenna Rewcastle"
+date: "11/15/2017"
+output: html_document
+---
+We observed seedling survival in a in a forest.  At each seedlng, we measure an integrated metric of light levels.  We want to estimate a logistic regression model for these data to determine the relationship between light levels and seedlng survival.  The model will be of the form:
+logit(p)<-beta0 + beta1 * light
+seedling ~ binomial(n=1, p)
+
+Repeat steps 1-6 from the Poisson regression model above except for the binomial model.
+
+Please use the following code to simulate data in order to recapture model paramters (beta0 and beta1):
+
+Simulating data for a binomial regression. 
+
+```{r}
+beta0<- -1.0; beta1<-3.0
+light<-runif(1000)
+pVect<-exp(beta0+beta1*light)/(1+exp(beta0+beta1*light))
+range(pVect)
+seedlingSurv<-rbinom(n=length(light),size=1,prob=pVect)
+
+seedlingSurvData<-data.frame(light,seedlingSurv) # if you want a data frame
+plot(light,seedlingSurv)
+```
+### 1. Fit the Binomial regression using maximum likelihood.
+
+```{r}
+## The likelihood function:
+
+nllBinom<-function(parVec,sdlgs,light){
+    b0<-parVec[1]
+    b1<-parVec[2]
+  sdlgPred<-exp(b0+b1*light)/(1+exp(b0+b1*light))
+  size<-1
+  nllik<- -sum(dbinom(x=sdlgs,size=size,prob=sdlgPred,log=TRUE))
+  return(nllik)
+}
+
+parVec<-c(-0.5,1.0)
+outBinom<-optim(par=parVec,fn=nllBinom,method="L-BFGS-B",lower=c(-Inf,-Inf),upper=c(Inf,Inf),sdlgs=seedlingSurv,light=light)
+outBinom$par # b0 = -0.7834863, b1 = 2.6762116
+outBinom$val # nllik = 601.4455 
+myAIC<-2*2 + 2*outBinom$val # AIC score = 1206.891, only relevant when comparing model fits 
+```
+
+Plotting binomial regression fit to the data:
+
+```{r}
+lightPred<-light[order(light)]
+plot(light,seedlingSurv)
+lines(lightPred, exp(outBinom$par[1]+outBinom$par[2]*lightPred)/(1+exp(outBinom$par[1]+outBinom$par[2]*lightPred)),col='red',lwd=2)
+```
+
+### 2. Compare your maximum likelihood fit to the R glm function.
+
+```{r}
+outglm<-glm(seedlingSurv~light, family=binomial,data=seedlingSurvData)
+summary(outglm) 
+
+# Output matches MLE fit. b0 = -0.7835, b1 = 2.6762
+```
+
+### 3.  Compare your fit to Stan using brms library (Bayesian Regression Models) 
+
+```{r}
+library(brms)
+
+outStan <- brm(formula = seedlingSurv ~ light,
+            data = seedlingSurvData, family = binomial())
+
+summary(outStan) # b0 = -0.79, b1 = 2.69 (matches the above)
+plot(outStan)
+
+# This version runs 4 parallel chains and includes a warmup to get rid of the noise
+outStan1 <- brm(formula = seedlingSurv ~ light,
+            data = seedlingSurvData, family = binomial(),
+            prior = c(set_prior("normal(0,100)", class = "b")),
+            warmup = 1000, iter = 2000, chains = 4)
+
+summary(outStan1) # Same results as above. b0 = -0.78, b1 = 2.68
+plot(outStan1)
+
+plot(marginal_effects(outStan1),points=TRUE)
+
+```
+
+### 4. Compare your fit to Stan using rstanarm library
+
+```{r}
+library(rstanarm)
+outrstanarm<-stan_glm(seedlingSurv ~ light,data = seedlingSurvData, family = binomial, iter=2000, warmup=1000, cores=4)
+
+summary(outrstanarm) # Slightly different estimates, b0 = -0.8, b1 = 2.7
+plot(outrstanarm) 
+```
+
+### 5. Fit the binomial regression using Rstan (develop your own raw code)
+
+```{r}
+### ORDER: Run myData, then run the model string below, then run resStan
+library(rstan)
+myData<-list(seedlingSurv=seedlingSurv,light=light,N=length(light))
+
+resStan <- stan(model_code = modelString, data = myData,
+                chains = 3, iter = 3000, warmup = 500, thin = 10)
+
+summary(resStan,par=c('beta0','beta1')) # b0 = -0.7851853, b1 = 2.6844326
+```
+
+```{r}
+modelString<-"data {
+  int<lower=0> N;
+  real<lower=0,upper=1> light[N];
+  int<lower=0> seedlingSurv[N];
+}
+
+parameters {
+  real beta0;
+  real beta1;
+}
+
+transformed parameters {
+  real lp[N];
+  real <lower=0> mu[N];
+  
+  for(i in 1:N){
+    lp[i] = beta0 + beta1 * light[i];
+    mu[i] = (exp(lp[i])) / (1 + exp(lp[i]));
+  }
+}
+
+model {
+  seedlingSurv ~ binomial(1,mu);
+}"
+```
+
+```{r}
+library(coda)
+post_fit<-As.mcmc.list(resStan) 
+plot(post_fit) # Creates a ton of graphs, but last one is the one we want.
+```
+
+### 6. Fit the Poisson regression using Rjags
+
+```{r}
+library(rjags)
+
+### Order: run ModelString and writeLines first
+
+modelString<-"
+model {
+  for (i in 1:N){
+    seedlingSurv[i] ~ dbin(p[i],1)
+    logit(p[i]) <- beta0 + beta1 * light[i]
+  }
+  beta0 ~ dnorm(0, .0001)
+  beta1 ~ dnorm(0, .0001)
+}
+"
+writeLines(modelString, con='binomReg.jags.txt')
+
+jags <- jags.model('binomReg.jags.txt',
+                   data = list('seedlingSurv' = seedlingSurv,
+                               'light' = light,
+                               'N' = length(light)),
+                   inits<-list(
+                       list('beta0'=1,'beta1'=2),
+                       list('beta0'=1,'beta1'=.2),
+                       list('beta0'=.1,'beta1'=2),
+                       list('beta0'=2,'beta1'=5)),
+                   n.chains = 4,
+                   n.adapt = 100)
+```
+
+```{r}
+update(jags, 1000) # basically establishes the burn in, removes burn in from chain results
+
+jags.samples(jags,
+             c('beta0', 'beta1'),
+             10000) # takes a fair bit of time to run 10,000 iterations
+
+# b0 = -0.7887294, b1 = 2.689231... Same values as above!
+```
+
+
+```{r}
+library(coda)
+codaSamples<-coda.samples(jags, c('beta0','beta1'), 10000, 1) # Also takes almost a minute to run.
+plot(codaSamples, trace = TRUE, density = TRUE)
+summary(codaSamples)
+```

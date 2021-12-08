@@ -1,0 +1,198 @@
+---
+title: "Meeting 4 Solutions"
+output: html_document
+---
+
+4E1.  In the model definition below, which line is the likelihood?
+yi~Normal(μ,σ)
+μ~Normal(0,10)
+σ~Exponential(1)
+
+_The first line is the likelihood. The second line is very similar, but is instead the prior for the parameter μ. The third line is the prior for the parameter σ. Likelihoods and priors can look similar_
+
+
+4E2.  In the model definition just above, how many parameters are in the posterior distribution?
+
+_Two parameters in the posterior: μ and σ._
+
+
+4E3.  Using the model definition above, write down the appropriate form of Bayes’ theorem that includes the proper likelihood and priors.
+
+_There are boxes in the chapter that provide examples. Here’s the right form in this case, ignoring the specific distributions for the moment:_
+
+Pr(μ, σ|y) = integral of  Pr(y|μ, σ) Pr(μ) Pr(σ ) / integral of Pr(y|μ, σ) Pr(μ) Pr(σ) dμ dσ
+
+_Then insert the distributional assumptions:_
+
+Pr(μ, σ|y) =  Normal(y|μ, σ)Normal(μ|0, 10) Exponential(σ|1)  /Integral of Normal(y|μ, σ) Normal(μ|0, 10) Exponential(σ|1) dμ dσ
+
+
+4E4.  In the model definition below, which line is the linear model?
+
+yi~Normal(μ,σ)
+μi=α+βxi
+α~Normal(0,10)
+β~Normal(0,1)
+σ~Exponential(2)
+
+_The second line is the linear model._
+
+4E5.  In the model definition just above, how many parameters are in the posterior distribution?
+
+_There are 3 parameters in the posterior: α, β, and σ. The symbol μ is no longer a parameter in the posterior, because it is entirely determined by α, β, and x._
+
+4M1.  For the model definition below, simulate observed y values from the prior (not the posterior).
+yi~Normal(μ,σ)
+μ~Normal(0,10)
+σ~Exponential(1)
+
+_To sample from the prior distribution, we use rnorm to simulate, while averaging over the prior distributions of μ and σ. The easiest way to do this is to sample from the priors and then pass those samples to rnorm to simulate observations. This code will sample from the priors:_
+
+```{r}
+mu_prior <- rnorm( 1e4 , 0 , 10 ) 
+sigma_prior <- rexp( 1e4 , 1 )
+
+```
+
+_You may want to visualize these samples with dens, just to help your intuition for the priors. Now to simulate observations that average over these prior distributions of parameters:_
+
+```{r}
+library(rethinking)
+h_sim <- rnorm( 1e4 , mu_prior , sigma_prior ) 
+dens( h_sim )
+```
+
+
+4M2.  Translate the model just above into a quap formula.
+
+_As a quap formula, the model in 4M1 is:_
+
+```{r}
+f <- alist(
+y ~ dnorm( mu , sigma ), 
+mu ~ dnorm( 0 , 10 ), 
+sigma ~ dexp( 1 )
+)
+```
+
+
+
+4M8.  In the chapter, we used 15 knots with the cherry blossom spline. Increase the number of knots and observe what happens to the resulting spline. Then adjust also the width of the prior on the weights—change the standard deviation of the prior and watch what happens. What do you think the combination of knot number and the prior on the weights controls?
+
+_As the number of knots increases, the spline will wiggle more, but only up to a point. The width on the prior weights constrains how wiggly the spline can become. If you make the prior very wide, then then spline can wiggly a lot, if it has enough knots. The combination of number of knots and the width of the prior weights determines how tightly the spline can match the sample. In a later chapter, you’ll see that having a perfect match to the sample is not really a good idea._
+
+_Load the data, remove missing data, and determine the knots._
+```{r}
+library(rethinking)
+data(cherry_blossoms)
+d<-cherry_blossoms
+d2 <- d[ complete.cases(d$doy) , ] # complete cases on doy
+num_knots <- 50
+knot_list <- quantile( d2$year , probs=seq(0,1,length.out=num_knots) )
+```
+
+_Create the basis functions_
+```{r}
+library(splines)
+B <- bs(d2$year,
+knots=knot_list[-c(1,num_knots)] ,
+degree=3 , intercept=TRUE )
+```
+
+_Plot the basis functions_
+```{r}
+plot(NULL,xlim=range(d2$year),ylim=c(0,1), xlab='year', ylab='basis')
+for ( i in 1:ncol(B) ) lines( d2$year , B[,i] )
+```
+
+_Fitting the model_
+
+```{r}
+m4.7 <- quap(
+alist(
+D ~ dnorm( mu , sigma ) ,
+mu <- a + B %*% w ,
+a ~ dnorm(100,10),
+w ~ dnorm(0,10),
+sigma ~ dexp(1)
+), data=list( D=d2$doy , B=B ) ,
+start=list( w=rep( 0 , ncol(B) ) ) )
+```
+
+_Plot the fitted individual basis functions_
+
+```{r}
+post <- extract.samples( m4.7 )
+w <- apply( post$w , 2 , mean )
+plot( NULL , xlim=range(d2$year) , ylim=c(-6,6) ,
+xlab='year', ylab='basis * weight' )
+for ( i in 1:ncol(B) ) lines( d2$year , w[i]*B[,i] )
+```
+_Plotting the predicted line_
+```{r}
+mu <- link( m4.7 )
+mu_PI <- apply(mu,2,PI,0.97)
+mu_mean<-apply(mu,2,mean)
+plot( d2$year , d2$doy , col=col.alpha(rangi2,0.3) , pch=16 )
+shade( mu_PI , d2$year , col=col.alpha("black",0.5) )
+lines( d2$year , mu_mean )
+```
+
+
+4H5.  Return to data(cherry_blossoms) and model the association between blossom date (doy) and March temperature (temp). Note that there are many missing values in both variables. (From Brian: I would suggest just using complete.cases in R to filter out missing data for this exercise.)  You may consider a linear model, a polynomial, or a spline on temperature. How well does temperature trend predict the blossom trend?
+
+```{r}
+library(rethinking) 
+data(cherry_blossoms)
+```
+
+_So we need to select out complete cases for doy and temp._
+
+```{r}
+d <- cherry_blossoms
+d2 <- d[ complete.cases( d$doy , d$temp ) , c("doy","temp") ]
+```
+
+_You should be left with 787 rows. If you  plot(d2) you’ll see there is surely some relationship. But it’s pretty noisy. I’m going to go ahead and build a spline here, for the sake of the example. But a linear fit wouldn’t be awful, even though at the extremes this relationship cannot possibly be linear. First build the knot list. We’ll build the knots on the temperature record, thinking of doy as the outcome variable._
+
+```{r}
+num_knots <- 30
+knot_list <- quantile( d2$temp , probs=seq(0,1,length.out=num_knots) ) 
+library(splines)
+B <- bs(d2$temp,
+knots=knot_list[-c(1,num_knots)] , 
+degree=3 , 
+intercept=TRUE )
+
+```
+
+_And now the model:_
+
+```{r}
+m4H5 <- quap( alist(
+D ~ dnorm( mu , sigma ), 
+mu <- a + B %*% w,
+a ~ dnorm(100,10),
+w ~ dnorm(0,10),
+sigma ~ dexp(1)
+), 
+data=list( D=d2$doy , B=B ) , 
+start=list( w=rep( 0 , ncol(B) ) ) 
+)
+```
+
+_You can inspect the precis output, if you like. The weights aren’t going to be meaningful to you, so let’s plot. The only trick here is to get the order of the temperature values right when we plot, since they are not ordered in the data or in the basis functions. We can do this with order to get the index values for the proper order and then index everything else by this:_
+
+```{r}
+mu <- link( m4H5 )
+mu_mean <- apply( mu , 2 , mean )
+mu_PI <- apply( mu , 2 , PI, 0.97 )
+plot( d2$temp , d2$doy , col=col.alpha(rangi2,0.3) , pch=16 ,
+xlab="temp" , ylab="doy" )
+o <- order( d2$temp )
+lines( d2$temp[o] , mu_mean[o] , lwd=3 ) 
+shade( mu_PI[,o] , d2$temp[o] , col=grau(0.3) )
+```
+
+_There is a lot of wiggle in this spline. I used 30 knots and loose prior weights, so this wiggle isn’t unexpected. It also probably isn’t telling us anything causal. Overall the trend is quite linear, aside from the odd drop just before 6 degrees. This could be real, or it could be an artifact of changes in the record keeping. The colder dates are also older and the temperatures for older dates were estimated differently._
+

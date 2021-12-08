@@ -1,0 +1,18 @@
+
+model {
+  for (i in 1:N){
+    seedLost[i] ~ dbern(theta[i])
+    logit(theta[i]) <- beta0[i] + beta1 * gap[i]
+    beta0[i]~dgamma(a[i],b[i])
+    a[i]<-mu[i]^2/varG
+    b[i]<-mu[i]/varG
+    log(mu[i])<-beta2 + beta3*sdMass[i] + beta4*(sdMass[i]^2)
+    #   log(mu[i])<-beta2 + beta3*sdMass[i] + beta4*(sdMass[i]^2)
+  }
+  varG ~  dgamma(0.001,0.001)
+  beta1 ~ dnorm(0, .0001)
+  beta2 ~ dnorm(0, .0001)
+  beta3 ~ dnorm(0, .0001)
+  beta4 ~ dnorm(0, .0001)
+}
+

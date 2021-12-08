@@ -1,0 +1,200 @@
+---
+title: "Meeting 5 Solutions"
+output: html_document
+---
+
+5E1.  Which of the linear models below are multiple linear regressions?
+(1)  μi=α+β xi
+(2)  μi=βx xi+βz zi
+(3)  μi=α+β(xi−zi)
+(4)  μi=α+βx xi+βz zi
+
+_Only (2) and (4) are multiple linear regressions. Both have more than one predictor variable and corresponding coefficients in the linear model. The model (1) has only a single predictor variable, x. The model (3) has two predictor variables, but only their difference for each case enters the model, so effectively this is a uni-variate regression, with a single slope parameter._
+
+5E2.  Write down a multiple regression to evaluate the claim: Animal diversity is linearly related to latitude, but only after controlling for plant diversity. You just need to write down the model definition.
+
+_A verbal model statement like this will always be somewhat ambiguous.That is why mathematical notation is needed in scientific communication. However, the conventional interpretation of the statement would be:_
+
+Ai ∼ Normal(μi, σ) 
+μi = α + βL Li + βP Pi
+
+_where A is animal diversity, L is latitude, and P is plant diversity. This linear model “controls” for plant diversity, while estimating a linear relationship between latitude and animal diversity._
+
+
+5E3.  Write down a multiple regression to evaluate the claim: Neither amount of funding nor size of laboratory is by itself a good predictor of time to PhD degree; but together these variables are both positively associated with time to degree. Write down the model definition and indicate which side of zero each slope parameter should be on.
+
+_Define T as time to PhD degree, the outcome variable implied by the problem. Define F as amount of funding and S as size of laboratory, the implied predictor variables. Then the model (ignoring priors) might be:_
+
+Ti ∼ Normal(μi, σ) 
+μi = α + βF Fi + βS Si
+
+_The slopes βF and βS should both be positive. How can both be positively associated with the outcome in a multiple regression, but neither by itself? If they are negatively correlated with one another, then considering each alone may miss the positive relationships with the outcome. For example, large labs have less funding per student. Small labs have more funding per student, but poorer intellectual environments. So both could be positive influences on time to degree, but be negatively associated in nature._
+
+
+5M1.  Invent your own example of a spurious correlation. An outcome variable should be correlated with both predictor variables. But when both predictors are entered in the same model, the correlation between the outcome and one of the predictors should mostly vanish (or at least be greatly reduced).
+
+_The are many good answers to this question. The easiest approach is to think of some context that follows the divorce rate pattern in the chapter: one predictor influences both the outcome and the other predictor. For example, we might consider predicting whether or not a scientific study replicates, e.g., can be replicated by other groups. Two predictor variables are available: (1) sample size and (2) statistical significance. Sample size influences both statistical significance and reliability of a finding. This induces a correlation between significance and successful replication, even though significance is not associated with replication, once sample size is taken into account._
+
+
+5M2.  Invent your own example of a masked relationship. An outcome variable should be correlated with both predictor variables, but in opposite directions. And the two predictor variables should be correlated with one another.
+
+_Again,many good answers are possible.The pattern from the milk energy example in the chapter is the simplest. Consider for example the influences of income and drug use on health. Income is positively associated, in reality, with health. Drug use is, for the sake of the example, negatively associated with health. But wealthy people consume more drugs than the poor, simply because the wealthy can afford them. So income and drug use are positively associated in the population. If this positive association is strong enough, examining either income or drug use alone will show only a weak relationship with health, because each works on health in opposite directions._
+
+
+5H2.  Assuming that the DAG for the divorce example is indeed M → A → D, fit a new model and use it to estimate the counterfactual effect of halving a State’s marriage rate M. Use the counterfactual example from the chapter (starting on page 140) as a template.
+
+_The first thing to do is outline the full statistical model. If the DAG is M → A → D, then this implies two regressions. The first regresses A on M and the second D on A. That is the model we need to program, in order to compute the counterfactual prediction of intervening on M. The model contains both regressions, and the estimates from both regressions are used to compute the counterfactual prediction, because any intervention on M first influences A which then influences D._
+
+_Start by loading the data:_
+
+```{r}
+library(rethinking) 
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$D <- standardize(d$Divorce)
+d$M <- standardize(d$Marriage)
+d$A <- standardize(d$MedianAgeMarriage)
+```
+
+_Fitting bivariate regressions of D ~ A and A ~ M:_
+
+```{r}
+m5H2 <- quap( alist(
+# A -> D
+D ~ dnorm( muD , sigmaD ), 
+muD <- aD + bAD*A,
+# M -> A
+A ~ dnorm( muA , sigmaA ), 
+muA <- aA + bMA*M,
+# priors
+c(aD,aA) ~ dnorm(0,0.2), 
+c(bAD,bMA) ~ dnorm(0,0.5), c(sigmaD,sigmaA) ~ dexp(1)
+    ) , data=d )
+precis(m5H2)
+```
+
+_This just shows what you already know from the chapter: A and M are negatively associated and A and D are also negatively associated. It’s interpreting these associations as having causal directions that makes counterfactual prediction._
+
+_Now the counterfactual prediction is accomplished by building an input range of values for the interventions on M and then simulating both A and then D. We can use sim for this. Or you could do it in raw code just with rnorm and samples from the posterior. Here is the sim approach, just like in the chapter:_
+
+```{r}
+M_seq <- seq( from=-3 , to=3 , length.out=30 )
+sim_dat <- data.frame( M=M_seq )
+s <- sim( m5H2 , data=sim_dat , vars=c("A","D") )
+plot(sim_dat$M , colMeans(s$A) , ylim=c(-2,2) , type="l" ,
+      xlab="manipulated M" , ylab="counterfactual A" ) 
+shade( apply(s$A,2,PI) , sim_dat$M )
+mtext( "Counterfactual M -> A" )
+plot( sim_dat$M , colMeans(s$D) , ylim=c(-2,2) , type="l" , xlab="manipulated M" , ylab="counterfactual D" )
+shade( apply(s$D,2,PI) , sim_dat$M ) 
+mtext( "Counterfactual M -> A -> D" )
+```
+
+_The left plot shows the intermediate M → A effect, which comes directly from the coefficient bMA. This effect is negative, with one unit change in M moving A by about −0.7 on average. The right plot shows the full counterfactual effect of M on D. This effect depends upon both coefficients bMA and bAD. It is not negative, but rather positive. Why? Because both coefficients are negative. If increasing A decreases D, then decreasing A increases D. Since increasing M decreases A, it follows that increasing M increases D. If that is confusing, that’s natural. Luckily the model can get this right without even understanding it. In simple linear models like these, the total causal effect along a path like M → M → D is given by multiplying the coefficients along the path. In this case that means the product of bMA and bAD. So that’s (−0.57) × (−0.69) ≈ 0.4 at the posterior mean._
+
+_Okay, but the question asked what would happen if we halved a State’s marriage rate. And this is the hard part of the problem. We have to decide what the original marriage rate was, to know what halving it means. And then we have to convert to the standardized scale that the model uses._
+
+_The average marriage rate in the sample is about 20. So if we halve the rate of an average State, it ends up at 10. What is 10 in the standardized units of the model? We find out by standardizing it!_
+
+```{r}
+ (10 - mean(d$Marriage))/sd(d$Marriage)
+```
+
+_That would be a huge effect! Looking at the righthand plot above, going from M = 0 to M = −2.7 would take us from about D = 0 to D = −1. Or we could do this calculation more directly:_
+
+```{r}
+M_seq <- c( 0 , -2.67 )
+sim_dat <- data.frame( M=M_seq )
+s <- sim( m5H2 , data=sim_dat , vars=c("A","D") ) 
+diff <- s$D[,2] - s$D[,1]
+mean( diff )
+```
+
+_So the causal effect of halving an average State’s marriage rate is to decrease divorce by a full standard deviation. Well, if this causal model is right. In other words, the counterfactual plot helps understand the effect of varying M on D through the causal link with A, i.e., only directly manipulated M. _
+
+
+
+5H3.  Return to the milk energy model, m5.7. Suppose that the true causal relationship among the variables is:
+
+K<-M->N->K (SEE IMAGE IN BOOK-this is my recreation of the figure)
+
+Now compute the counterfactual effect on K of doubling M. You will need to account for both the direct and indirect paths of causation. Use the counterfactual example from the chapter (starting on page 140) as a template.
+
+
+_This is very similar to the previous problem. The model is only more complicated, but the solution steps are the same. Load the data again:_
+
+```{r}
+library(rethinking)
+data(milk)
+d <- milk
+d$K <- standardize( d$kcal.per.g ) 
+d$N <- standardize( d$neocortex.perc ) 
+d$M <- standardize( log(d$mass) )
+d2 <- d[ complete.cases( d$K , d$N , d$M ) , ]
+```
+
+_The causal model is K ← M → N → K. It’ll be easier if we break this down into the component functions: (1) K is a function of M and N, (2) N is a function of M. So again this is just two regression models, run simultaneously. K is energy in milk, M is body mass, and N is neocortex size._
+
+```{r}
+m5H3 <- quap( alist(
+# M -> K <- N
+K ~ dnorm( muK , sigmaK ), 
+muK <- aK + bMK*M + bNK*N,
+# M -> N
+N ~ dnorm( muN , sigmaN ), 
+muN <- aN + bMN*M,
+# priors
+c(aK,aN) ~ dnorm( 0 , 0.2 ), 
+c(bMK,bNK,bMN) ~ dnorm( 0 , 0.5 ), 
+c(sigmaK,sigmaN) ~ dexp( 1 )
+    ) , 
+data=d2 )
+precis( m5H3 )
+```
+
+_This problem also asks the question to find out what would happen if we double M. So we need to pick some value to double. So let’s pick a species, double its mass, then covert that the standardized log mass. Sounds complicated, but take it one step at a time. Body mass in this sample rages from 0.12 kg to 97.72 kg, with a mean of 15 kg. Let’s consider a species of average mass and double it. In standardized log units:_
+
+
+```{r}
+ (log(c(15,30)) - mean(log(d$mass)))/sd(log(d$mass))
+```
+
+_The first value above is the standardized value for 1 kg. The second is for 2 kg. Now the calculation:_
+
+```{r}
+M_seq <- c( 0.75 , 1.15 )
+sim_dat <- data.frame( M=M_seq )
+s <- sim( m5H3 , data=sim_dat , vars=c("N","K") ) 
+diff <- s$K[,2] - s$K[,1]
+quantile( diff , probs=c( 0.05 , 0.5 , 0.94 ) )
+
+M_seq <- seq( from=-3 , to=3 , length.out=30 ) 
+sim_dat <- data.frame( M=M_seq )
+s <- sim( m5H3 , data=sim_dat , vars=c("N","K") )
+```
+
+_So doubling mass from 15 kg to 30 kg would (according to the model) have no strong effect on K. It is expected to decline a bit. But the compatibility interval above is the entire range of the variable, basically._
+
+_This makes sense if you just think about the paths again. In a linear model, we can get the causal effect by multiplying the coefficients on each path and then adding all the paths together. In this case, we need:_
+
+```{r}
+0.61*0.68 - 0.7
+```
+
+_But the effect we computed is only for a change of 1.15 − 0.75 = 0.4, so we want 0.4 of the above:_
+
+```{r}
+
+(0.61*0.68 - 0.7)*0.4
+
+```
+
+_And that’s almost what we got from the simulation as the median effect. This only works for linear models, remember. The simulation approach will work for any model._
+
+_The Bottom line:  We wanted to know the effect of changing M on K:  We did this by examining the direct effect of M on K (i.e., bMK = -0.7) and
+the indirect of M on K through N (i.e., 0.61 * 0.68, which is bMN * bNK) and the total effect is the sum of these two paths: -0.7- + 0.61*0.68, scaled by the change in M (i.e., 0.4) = -0.11408.  This is small because of the contradicting effects of the two paths._
+
+
+
+
+

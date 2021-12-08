@@ -1,0 +1,351 @@
+---
+title: "Final Project Analysis-PBIO294"
+author: "Peter Clark"
+date: "December 9, 2017"
+output: html_document
+---
+
+#Setting up the data
+```{r}
+setwd("~/UVM/PBIO 294 Ecological Modelling")
+woodlotData <- read.csv(file = "FarmWoodlot2017_BayesFinal.csv", header = T)
+#head(woodlotData)
+allData <- woodlotData$DBH_cm
+#str(allData)
+hist(allData, xlab = "Diameter in cm")
+
+#####Can cut for final if using all data 
+#plotOne <- woodlotData[woodlotData$PlotNum == '1',] # select data for only plot one.
+#head(plotOne)
+#hist(plotOne$DBH_cm, xlab = "Diameter in cm")
+#plotOneVar<-plotOne$DBH_cm
+```
+
+
+#Fitting PDF using fitdistrplus
+```{r}
+require(fitdistrplus)
+xfit <- fitdist(data = allData, distr = "weibull", method = "mle")
+xfit
+summary(xfit)
+#Parameters : 
+#       estimate Std. Error
+#shape  1.820925 0.02709021
+#scale 28.031346 0.33500786
+#Loglikelihood:  -9451.054   AIC:  18906.11
+plot(xfit)
+gofstat(xfit)
+#Goodness-of-fit statistics
+#                             1-mle-weibull
+#Kolmogorov-Smirnov statistic     0.1419254
+#Cramer-von Mises statistic      10.6565758
+#Anderson-Darling statistic      68.1964757
+#Goodness-of-fit criteria
+#                               1-mle-weibull
+#Akaike's Information Criterion      18906.11
+#Bayesian Information Criterion      18917.66
+
+#cdfcomp(xfit)
+#denscomp(xfit)
+```
+
+
+#Pulling Cumulative Density Results from my data
+```{r}
+plot(ecdf(allData), main="Empirical Cumulative Distribution Function for Woodlot Data", xlab = "DBH in CM", cex.main= .95) #Examiing ECDF as a plot
+ecdfResult <-ecdf(allData) # assign ECDFvalues to a variable I can use
+ecdfResult # collapsing 2000+ observations ot 504 unique values
+
+uniqueECDF<-ecdfResult(unique(allData)) # use "unique" to populate a complete list of unique values
+
+write.csv(cbind(unique(allData), ecdfResult(unique(allData))), file="~/UVM/PBIO 294 Ecological Modelling/allwoodlotDataECDFResult.txt") #write csv combining dbh data and ecdf results
+ECDFData<- read.csv(file="~/UVM/PBIO 294 Ecological Modelling/allwoodlotDataECDFResult.txt", header = TRUE, sep =",") #under header, v1 = dbh, v2 = ECDF
+
+head(ECDFData)
+plot(ECDFData$V1, ECDFData$V2, main = "derived ECDF plot", xlab="dbh", ylab="density") #testing the ECDF data to make sure the values I pulled look right
+```
+
+
+#Create my data
+```{r}
+#create my variables:
+densData <- ECDFData$V2 #unique edcf values
+str(densData)
+indDBH <- ECDFData$V1 # corresponding dbh valeus
+str(indDBH)
+```
+
+
+#Fitting Likelihood Function to 2 Parameter Weibull
+```{r}
+#e<-2.718282 #hardcoding e
+
+wei2DataLik<-function(parVec, densityData, dbhData, sd){
+    density<- densityData #ECDF
+    dbh<- dbhData # dbh data,
+    scale<-parVec[1]
+    shape<-parVec[2]
+    two2PWei<-1-exp(-(dbh/scale)^shape) #cdf for 2 parameter weiull
+    llik<- -sum(dnorm(x=density,mean=two2PWei,sd=sd,log=TRUE))
+    #print(llik)
+    #browser()
+    return(llik)
+}
+
+```
+
+#Running OPTIM on 2 Parameter Weibull likelihood model
+```{r}
+#my parameters
+parVec<-c(26,1) # 1: scale, 2: shape
+
+out2Wei<-optim(par=parVec,fn=wei2DataLik, method="L-BFGS-B", lower=c(-Inf,-Inf), upper=c(Inf,Inf), densityData=densData, dbhData=indDBH, sd = 1)
+out2Wei$par #The best set of parameters found. scale: 26.025059     shape: 1.627746
+out2Wei$val # 463.4907 neg log likelihood
+twoPAIC<-2*2 + 2*out2Wei$val 
+twoPAIC #930.9815
+print(out2Wei)
+```
+
+
+#Plotting Empiricle CDF against modelled cdf for 2 Parameter Weibull
+```{r}
+plot(indDBH, densData, main = "ECDF Plotted Against 2 Parameter Weibull Theoretical CDF from MLE", xlab = "DBH (cm)", ylab="Density")
+lines(indDBH, 1-(exp(-(indDBH/out2Wei$par[1])^out2Wei$par[2])),col='red',lwd=2)
+```
+
+
+#Fitting Likelihood Function to 3 Parameter Weibull
+```{r}
+weiCBF3DataLik<-function(parVec, densityData, dbhData, sd){
+    density<- densityData #ECDF
+    dbh<- dbhData # dbh data, or size class dbhECDFData$V1
+    scale<-parVec[1]
+    shape<-parVec[2]
+    location<-parVec[3]
+    threePWei<-1-exp(-(dbh-location/scale)^shape) #cdf
+    llik<- -sum(dnorm(x=density,mean=threePWei,sd=sd,log=TRUE)) 
+    #print(llik)
+    return(llik)
+}
+
+```
+
+#Running OPTIM on 2 Parameter Weibull likelihood model
+```{r}
+#new parameters
+par3Vec<-c(26,1,1)
+
+out3Wei<-optim(par=par3Vec,fn=weiCBF3DataLik, method="L-BFGS-B", lower=c(-Inf,-Inf), upper=c(Inf,Inf), densityData=densData, dbhData=indDBH, sd = 1)
+out3Wei$par #scale  25.99994458    shape 0.09498651     location: 1.00144076
+out3Wei$val # nllik 476.924
+threePCDFAIC<-2*2 + 2*out3Wei$val 
+threePCDFAIC # 957.848
+print(out3Wei)
+```
+
+
+#Plotting Empiricle CDF against modelled cdf for 2 Parameter Weibull
+
+```{r}
+plot(indDBH, densData, main = "ECDF Plotted Against 3 Parameter Weibull Theoretical CDF from MLE", xlab = "DBH (cm)", ylab="Density")
+lines(indDBH, 1-(exp(-(indDBH-out3Wei$par[3]/out3Wei$par[1])^out3Wei$par[2])),col='red',lwd=2) 
+
+```
+
+
+#JAGS model
+## 2 Parameter Weibull
+```{r}
+library(rjags)
+```
+
+#Model String
+
+```{r}
+model2ParamString<-"
+model{
+
+#likelihood
+for(i in 1:N) {
+density[i]~dnorm(y.hat[i],tau.y)    ##### similar to llik
+y.hat[i] <- 1-exp(-(dbh[i]/scale)^shape) #2 param weibull cdf
+  }
+
+  #priors
+  scale~dnorm(0,.0001) #confirm the parameters for these. >0?
+  shape~dnorm(0,.0001)
+  tau.y<-1/(sigma.y*sigma.y)  #pow(sigma.y,-2)
+  sigma.y~dunif(0,100)
+
+}
+
+"
+writeLines(model2ParamString, con='2pWeibull.jags.txt')
+
+```
+
+```{r}
+twoPjags <- jags.model('2pWeibull.jags.txt',
+                   data = list('density' = densData,
+                               'dbh' = indDBH,
+                               'N' = length(indDBH)),
+                   #inits<-list(
+                    #   list('scale'=26.025059,'shape'=1.6)),
+                   inits<-list(
+                       list('scale'=26,'shape'=1),
+                       list('scale'=26.5,'shape'=1.5),
+                       list('scale'=27,'shape'=2),
+                       list('scale'=25.5,'shape'=0.5)),
+                   n.chains = 4,
+                   n.adapt = 100)
+```
+
+```{r}
+update(twoPjags, 1000)
+
+jags.samples(twoPjags,
+             c('scale', 'shape'),
+             10000)
+
+```
+
+```{r}
+library(coda)
+coda2PSamples<-coda.samples(twoPjags, c('scale', 'shape'), 10000, 1)
+summary(coda2PSamples)
+#Iterations = 11101:21100
+#Thinning interval = 1 
+#Number of chains = 4 
+#Sample size per chain = 10000 
+
+#1. Empirical mean and standard deviation for each variable, plus standard error of the mean:
+
+#        Mean      SD  Naive SE Time-series SE
+#scale 26.025 0.10217 5.109e-04      5.566e-04
+#shape  1.628 0.01745 8.727e-05      8.825e-05
+
+#2. Quantiles for each variable:
+
+#        2.5%    25%    50%   75%  97.5%
+#scale 25.824 25.956 26.025 26.09 26.226
+#shape  1.594  1.616  1.628  1.64  1.662
+
+plot(coda2PSamples, trace = TRUE, density = TRUE)
+
+HPDinterval(coda2PSamples)
+
+autocorr.plot(coda2PSamples)
+
+gelman.diag(coda2PSamples, confidence = 0.95, transform=FALSE, autoburnin=TRUE, multivariate=TRUE)
+
+gelman.plot(coda2PSamples, bin.width = 10, max.bins = 50, confidence = 0.95, transform = FALSE, autoburnin=TRUE, auto.layout = TRUE)
+```
+
+```{r}
+plot(indDBH, densData, main = "ECDF Plotted Against 2 Parameter Weibull Theoretical CDF from MCMC", xlab = "DBH (cm)", ylab="Density")
+lines(indDBH, 1-(exp(-(indDBH/26.025)^1.628)),col='red',lwd=2)
+```
+
+
+#Jags
+##3 Parameter Weibull
+
+#Model String
+
+```{r}
+model3ParamString<-"
+model{
+
+#likelihood
+for(i in 1:N) {
+density[i]~dnorm(y.hat[i],tau.y)    ##### similar to llik
+y.hat[i]<-1-exp(-((dbh[i]-location)/scale)^shape) #3 weibull dist
+  }
+
+  #priors
+  scale~dnorm(0,.0001)
+  shape~dnorm(0,.0001)
+  location~dnorm(0,.0001)
+  tau.y <- 1/(sigma.y*sigma.y)  #pow(sigma.y,-2)
+  sigma.y~dunif(0,100)
+
+}
+
+"
+writeLines(model3ParamString, con='3pWeibull.jags.txt')
+
+```
+
+```{r}
+threePjags <- jags.model('3pWeibull.jags.txt',
+                   data = list('density' = densData,
+                               'dbh' = indDBH,
+                               'N' = length(indDBH)),
+                   inits<-list(
+                       list('scale'=26,'shape'=1,'location'=1),
+                       list('scale'=26.5,'shape'=1.5,'location'=2),
+                       list('scale'=25,'shape'=2,'location'=3),
+                       list('scale'=25.5,'shape'=0.5,'location'=4)),
+                   n.chains = 4,
+                   n.adapt = 100)
+```
+
+```{r}
+update(threePjags, 1000)
+
+jags.samples(threePjags,
+             c('scale', 'shape', "location"),
+             10000)
+
+```
+
+```{r}
+library(coda)
+coda3PSamples<-coda.samples(threePjags, c('scale', 'shape', "location"), 10000, 1)
+summary(coda3PSamples)
+
+plot(coda3PSamples, trace = TRUE, density = TRUE)
+
+```
+
+```{r}
+# still need parameters, AIC and graphed model performance
+```
+
+
+
+
+
+
+
+
+
+
+#scratch to be added later
+
+```{r}
+library(evd)
+#str(rrweibull) #function (n, loc = 0, scale = 1, shape = 1)
+result<-prweibull(q=allData, loc = 0, scale = 28.031346, shape = 1.820925) # true returns log density
+dweiResult<-dweibull(x=allData, shape = 1.820925, scale = 28.031346, log = FALSE)
+
+plot(result, type = "l")
+plot(dweiResult, type = "l")
+
+
+```
+
+
+```{r}
+plot(ecdf(allData), main="Empirical cumulative distribution function for All Woodlot Data", xlab = "DBH in CM") #ECDF
+
+
+plot(density(plotOne$DBH_cm),main="Density estimate of data") #density of data
+plot(ecdf(plotOne$DBH_cm), main="Empirical cumulative distribution function") #ECDF
+
+```
+
+
+
+out3Wei$par #scale  1.0439317    shape 1.9980681     location: 0.9560683

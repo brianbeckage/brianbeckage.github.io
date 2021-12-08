@@ -1,0 +1,397 @@
+---
+title: "PBIO 294 Final Exam"
+author: "Jeremy Weiland"
+date: "12/12/2017"
+output: html_document
+---
+
+Below are the three questions for the PBIO 294 Final Exam.  All work must be your own.  Reference to outside sources should be limited to the documentation for R, Stan, JAGS, or general questions regarding pdf's, etc.  This exam is due by midnight, Monday, 11 Dec 2017. 20% will be deducted for each additonal 6 hours that this exam is turned in late. Please email your R/.Rmd file to brian.beckage@uvm.edu.
+
+
+1. (30 points) An ecologist is interested in the intermediate disturbance hypothesis (IDH) 
+that postulates that the highest species richness should be found at intermediate levels of 
+disturbance. Write a  likelihood function to estimate the  
+parameters for a quadratic regression models given in Beckage and Stout 2000 
+(http://www.uvm.edu/~bbeckage/Manuscripts/BeckageStout.corrected.2000.jvs.pdf), 
+but assuming a Poisson likelihood with a log link function.  Provide your i. *likelihood function and supporting R code for finding the MLE's*, ii. a *plot of the data with the fitted line* and iii. report the *regression parameters (bo, b1, and b2)*, and iv. the value of the *negative log likelihood at the MLEs*.  Note:  You must write your own likelihood function and not use a built in R function or package, e.g, lm, glm, etc.
+
+The data may be read using:
+```{r}
+srDat<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/idh.csv",sep=',',header=TRUE)
+
+#i) Likelihood functions
+nllPoi = function(parVec, nFires, sr){
+  b0 = parVec[1]
+  b1 = parVec[2]
+  b2 = parVec[3]
+
+  srPred = b2*nFires^2+b1*nFires+b0
+  nllik = -sum(dpois(x=sr, lambda=srPred, log=TRUE))
+  return(nllik)
+}
+
+parVec = c(1, 1, 1) # Initial parameter values
+
+outPois = optim(par=parVec,
+                fn=nllPoi,
+                method="BFGS",
+                nFires=srDat$nFires,
+                sr=srDat$sr)
+
+outPois$par
+
+#ii) plots
+firePred = srDat$nFires[order(srDat$nFires)]
+
+y = outPois$par[3]*srDat$nFires^2 + outPois$par[2]*srDat$nFires + outPois$par[1]
+plot(srDat$nFires, srDat$sr)
+lines(firePred, y)
+
+
+#iii) regression parameters
+b0 = outPois$par[1]
+b1 = outPois$par[2]
+b2 = outPois$par[3]
+
+b0
+b1
+b2
+
+#iv) negative log likelihood
+nll = nllPoi(c(b0,b1,b2), srDat$nFires, srDat$sr)
+nll
+```
+
+
+
+2. (30 points) Repeat exercise 1 except now fitting the model using either Rstan or Rjags.  You must write your own Stan/JAGS model, meaning that you can not use one of the Stan helper libraries such as the brms or rstanarm libraries. Provide your i. *Stan/JAGS model code and supporting R code for running the Stan/JAGS model*, ii. report the *2.5%, 50%, and 97.5% percentiles for the regression parameters (bo, b1, and b2)*, iii. *plot the posterior distributions for each of these parameters* and iv. *assess the convergence of your chains using the Gelman-Rubin statistic.* 
+
+```{r, include=FALSE, eval=FALSE}
+require(rstan)
+myData = list('nFires' = srDat$nFires,
+              'sr' = srDat$sr,
+              'N' = length(srDat$sr))
+
+modelString = "
+data {
+  int<lower=0> N;
+  int sr[N];
+  vector[N] nFires;
+}
+
+parameters {
+  real beta0;
+  real beta1;
+  real beta2;
+}
+
+model {
+  vector[N] srPred;
+  beta0 ~ normal(0,100);
+  beta1 ~ normal(0,100);
+  beta2 ~ normal(0,100);
+  for(i in 1:N){
+      srPred[i] = beta0 + beta1*nFires[i] + beta2*nFires[i]^2;
+      sr[i] ~ poisson(srPred[i]);
+  }
+}
+"
+
+resStan = stan(model_code = modelString,
+               data = myData,
+               chains = 1,
+               iter = 1000,
+               warmup = 100)
+
+summary(resStan,par=c('beta0','beta1','beta2'))
+```
+
+
+```{r}
+#i) JAGS model code
+modelString<-"
+model {
+  for (i in 1:N){
+    sr[i] ~ dpois(lam.hat[i])
+    lam.hat[i] = beta0 + beta1*nFires[i] + beta2*nFires[i]^2
+  }
+
+  beta0 ~ dnorm(0, .0001)
+  beta1 ~ dnorm(0, .0001)
+  beta2 ~ dnorm(0, .0001)
+}
+"
+writeLines(modelString, con='poissonReg.jags.txt')
+
+library(rjags)
+jags <- jags.model('poissonReg.jags.txt',
+                   data = list('nFires' = srDat$nFires,
+                               'sr' = srDat$sr,
+                               'N' = length(srDat$sr)),
+                   inits = list(
+                       list('beta0'=1,'beta1'=2),
+                       list('beta0'=1,'beta1'=.2),
+                       list('beta0'=.1,'beta1'=2),
+                       list('beta0'=2,'beta1'=5)),
+                   n.chains = 4,
+                   n.adapt = 100)
+
+update(jags, 1000)
+
+jags.samples(jags,
+             c('beta0', 'beta1', 'beta2'),
+             10000)
+
+library(coda)
+codaSamples = coda.samples(jags, c('beta0','beta1', 'beta2'), 10000, 1)
+
+plot(codaSamples, trace = TRUE, density = TRUE)
+
+
+#ii) summary statistics
+summaryStats = data.frame(means = summary(codaSamples)$statistics[,1],
+                          stdev = summary(codaSamples)$statistics[,2],
+                          "2.5 percentiles" = summary(codaSamples)$quantiles[,1],
+                          "50 percentiles" = summary(codaSamples)$quantiles[,3],
+                          "97.5 percentiles" = summary(codaSamples)$quantiles[,5])
+
+head(summaryStats)
+
+
+#iii) posterior distributions
+b0Chain = as.mcmc.list(codaSamples[,1])
+b1Chain = as.mcmc.list(codaSamples[,2])
+b2Chain = as.mcmc.list(codaSamples[,3])
+
+hist(rowMeans(as.matrix(b0Chain)),
+     col = "skyblue",
+     main = "beta0 Posterior Distribution",
+     xlab = "beta0")
+hist(rowMeans(as.matrix(b1Chain)),
+     col = "skyblue",
+     main = "beta1 Posterior Distribution",
+     xlab = "beta1")
+hist(rowMeans(as.matrix(b2Chain)),
+     col = "skyblue",
+     main = "beta1 Posterior Distribution",
+     xlab = "beta1")
+
+
+#iv) gelman rubin statistics
+b0GelRub = gelman.diag(b0Chain)
+b1GelRub = gelman.diag(b1Chain)
+b2GelRub = gelman.diag(b2Chain)
+
+b0GelRub
+b1GelRub
+b2GelRub
+```
+
+
+3. (40 points) An ecologist expects seed predation to be influenced by the presence of openings (gaps) in the forest overstory and seed mass. The effect of seed mass on predation is expected be quadratic:  Small seeds will be less predated because they offer a lower energetic reward while larger seeds will be too difficult to process, so that medium sized seeds will be most predated.  The effect of a gap is additive with lower predation expected in gaps because seed predators avoid areas of open canopy. The ecologist models the data as a hierarchical logistic regression, assuming that the seed masses are known without observation error.  The model has the form:
+
+Seed lost ~ Binomial(theta) # 1 if seed is predated, 0 if seed is left alone
+Logit(theta) = b0i + b1 x gap 
+b0i ~ gamma(mu^2/sd^2,mu/sd^2) 
+mui = b2 + b3 x seed mass i - b4 x (seed mass i)^2 
+sd^2 ~ gamma(0.001,0.001)
+b1,b2,b3,b4 ~ normal(0,100)
+
+Fit this model using either Rstan or Rjags.  You must write your own Stan/JAGS model, meaning that you can not use one of the Stan helper libraries such as the brms or rstanarm libraries. Provide your i. *Stan/JAGS model code and supporting R code for running the Stan/JAGS model*, ii. report the *2.5%, 50%, and 97.5% percentiles for the regression parameters (b1, b1, b2, b3, and b4)*, iii. *plot the posterior distributions for each of these parameters* and iv. *assess the convergence of your chains using the Gelman-Rubin statistic.*
+
+```{r}
+require(rjags)
+seeds<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/seeds.csv",sep=',',header=TRUE)
+seedDat = list(seedSurv = seeds$seedLost,
+               seedMass = sort(seeds$mass),
+               canopyGap = seeds$gap,
+               N = length(seeds$seedLost))
+
+modelString3 = "
+model{
+  for(i in 1:N){
+    seedSurv[i] ~ dbin(theta[i], N)
+    logit(theta[i]) = beta0[i] + beta1*canopyGap[i]
+    beta0[i] ~ dgamma(mu[i]^2/tau, mu[i]/tau)
+    log(mu[i]) = beta2 + beta3*seedMass[i] - beta4*seedMass[i]^2
+  }
+
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
+  beta3 ~ dnorm(0, 0.001)
+  beta4 ~ dnorm(0, 0.001)
+  tau ~ dgamma(0.001, 0.001)
+}
+"
+writeLines(modelString3, con='heriarch.jags.txt')
+
+library(rjags)
+jags <- jags.model('heriarch.jags.txt',
+                   data = seedDat,
+                   n.chains = 4,
+                   n.adapt = 100)
+
+update(jags, 1000)
+
+# jags.samples(jags,
+#              c('beta1', 'beta2', 'beta3', 'beta4'),
+#              1000)
+
+codaSamples = coda.samples(jags, c('beta1','beta2', 'beta3', 'beta4'), 10000, 1)
+
+plot(codaSamples, trace = TRUE, density = FALSE)
+
+#ii) summmary statistics
+summaryStats = data.frame(means = summary(codaSamples)$statistics[,1],
+                          "2.5 percentiles" = summary(codaSamples)$quantiles[,1],
+                          "50 percentiles" = summary(codaSamples)$quantiles[,3],
+                          "97.5 percentiles" = summary(codaSamples)$quantiles[,5])
+
+head(summaryStats)
+
+
+#iii) posterior distributions
+b1Chain = as.mcmc.list(codaSamples[,1])
+b2Chain = as.mcmc.list(codaSamples[,2])
+b3Chain = as.mcmc.list(codaSamples[,3])
+b4Chain = as.mcmc.list(codaSamples[,4])
+
+hist(rowMeans(as.matrix(b1Chain)),
+     col = "skyblue",
+     main = "beta1 Posterior Distribution",
+     xlab = "beta1")
+hist(rowMeans(as.matrix(b2Chain)),
+     col = "skyblue",
+     main = "beta2 Posterior Distribution",
+     xlab = "beta2")
+hist(rowMeans(as.matrix(b3Chain)),
+     col = "skyblue",
+     main = "beta3 Posterior Distribution",
+     xlab = "beta3")
+hist(rowMeans(as.matrix(b4Chain)),
+     col = "skyblue",
+     main = "beta4 Posterior Distribution",
+     xlab = "beta4")
+
+#iv) gelman rubin statistics
+b1GelRub = gelman.diag(b1Chain)
+b2GelRub = gelman.diag(b2Chain)
+b3GelRub = gelman.diag(b3Chain)
+b4GelRub = gelman.diag(b4Chain)
+
+b1GelRub
+b2GelRub
+b3GelRub
+b4GelRub
+
+```
+
+*note* means and quantiles for beta2, beta3, and beta4 are the log of the true values since they were estimated using a log function. The log function was used to keep the parameters of a gamma distribution restricted to positive values.
+
+```{r, include = FALSE, eval=FALSE}
+require(rstan)
+seeds<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/seeds.csv",sep=',',header=TRUE)
+seedDat = list(seedSurv = seeds$seedLost,
+               seedMass = sort(seeds$mass),
+               canopyGap = seeds$gap,
+               N = length(seeds$seedLost))
+
+#i) Stan code
+
+modelString2="
+data{
+  int<lower=0> N;
+  int<lower=0, upper=1> seedSurv[N];
+  vector<lower=0, upper=1>[N] canopyGap;
+  vector[N] seedMass;
+}
+parameters{
+  vector<lower=0>[N] beta0;
+  real beta1;
+  real beta2;
+  real beta3;
+  real beta4;
+  real<lower=0> tau;
+}
+model{
+  vector[N] theta;
+  vector[N] mu;
+
+  beta1 ~ normal(0,100);
+  beta2 ~ normal(0,100);
+  beta3 ~ normal(0,100);
+  beta4 ~ normal(0,100);
+  tau ~ gamma(0.001, 0.001);
+
+  for(i in 1:N){
+    mu[i] = beta2 + beta3*seedMass[i] - beta4*seedMass[i]^2;
+    beta0[i] ~ gamma(mu[i]^2/tau, mu[i]/tau);
+  }
+
+  theta = inv_logit(beta0 + beta1*canopyGap);
+  seedSurv ~ binomial(N, theta);
+}
+"
+
+resStan = stan(model_code = modelString2,
+               data = seedDat,
+               chains = 2,
+               iter = 1000,
+               warmup = 500,
+               control = list(adapt_delta = 0.999999))
+
+# summary(resStan,par=c('beta1','beta2','beta3','beta4'))
+
+library(coda)
+post_fit = As.mcmc.list(resStan,par=c('beta1','beta2','beta3','beta4')) 
+plot(post_fit[,1], trace = TRUE, density = FALSE)
+plot(post_fit[,2], trace = TRUE, density = FALSE)
+plot(post_fit[,3], trace = TRUE, density = FALSE)
+plot(post_fit[,4], trace = TRUE, density = FALSE)
+
+
+#ii) summmary statistics
+summaryStats = data.frame(means = summary(resStan,par=c('beta1','beta2','beta3','beta4'))$summary[,1],
+                          stdev = summary(resStan,par=c('beta1','beta2','beta3','beta4'))$summary[,2],
+                          "2.5 percentiles" = summary(resStan,par=c('beta1','beta2','beta3','beta4'))$summary[,4],
+                          "50 percentiles" = summary(resStan,par=c('beta1','beta2','beta3','beta4'))$summary[,6],
+                          "97.5 percentiles" = summary(resStan,par=c('beta1','beta2','beta3','beta4'))$summary[,8])
+
+head(summaryStats)
+
+
+#iii) posterior distributions
+b1Chain = as.mcmc.list(post_fit[,1])
+b2Chain = as.mcmc.list(post_fit[,2])
+b3Chain = as.mcmc.list(post_fit[,3])
+b4Chain = as.mcmc.list(post_fit[,4])
+
+hist(rowMeans(as.matrix(b1Chain)),
+     col = "skyblue",
+     main = "beta1 Posterior Distribution",
+     xlab = "beta1")
+hist(rowMeans(as.matrix(b2Chain)),
+     col = "skyblue",
+     main = "beta2 Posterior Distribution",
+     xlab = "beta2")
+hist(rowMeans(as.matrix(b3Chain)),
+     col = "skyblue",
+     main = "beta3 Posterior Distribution",
+     xlab = "beta3")
+hist(rowMeans(as.matrix(b4Chain)),
+     col = "skyblue",
+     main = "beta4 Posterior Distribution",
+     xlab = "beta4")
+
+#iv) gelman rubin statistics
+b1GelRub = gelman.diag(b1Chain)
+b2GelRub = gelman.diag(b2Chain)
+b3GelRub = gelman.diag(b3Chain)
+b4GelRub = gelman.diag(b4Chain)
+
+b1GelRub
+b2GelRub
+b3GelRub
+b4GelRub
+
+```

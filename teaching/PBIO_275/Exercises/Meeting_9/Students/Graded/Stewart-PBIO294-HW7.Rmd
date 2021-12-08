@@ -1,0 +1,201 @@
+---
+title: "R Notebook"
+output: html_document
+---
+
+### Binomial Regression Model 
+
+We observed seedling survival in a in a forest.  At each seedlng, we measure an integrated metric of light levels.  We want to estimate a logistic regression model for these data to determine the relationship between light levels and seedlng survival.  The model will be of the form:
+logit(p)<-beta0 + beta1 * light
+seedling ~ binomial(n=1, p)
+
+Repeat steps 1-6 from the Poisson regression model except for the binomial model.
+
+Please use the following code to simulate data in order to recapture model paramters (beta0 and beta1):
+
+Simulating data for a binomial regression.
+
+```{r}
+beta0 <- -1.0; beta1 <- 3.0
+light <- runif(1000)
+pVect <- exp(beta0 + beta1 * light) / (1 + exp(beta0 + beta1 * light))   ## Equation 5.13  K-book
+range(pVect)
+seedlingSurv <- rbinom(n = length(light), size = 1, prob = pVect)
+seedlingSurvData <- data.frame(seedlingSurv, light)
+
+plot(light, seedlingSurv)
+```
+
+
+### 1. Fit the binomial regression using maximum likelihood.
+
+The likelihood function:
+```{r}
+nllBinom <- function(parVec, sdlgs, light){
+    b0 <- parVec[1]
+    b1 <- parVec[2]
+  pVect <- exp(b0 + b1 * light) / (1 + exp(b0 + b1 * light))
+  nllik <- -sum(dbinom(x = sdlgs, size = 1, prob = pVect, log = TRUE))
+  return(nllik)
+}
+```
+
+```{r}
+parVec <- c(-1.0, 1.0) # Initial parameter values 
+outBinom <- optim(par = parVec, fn = nllBinom, method = "L-BFGS-B", lower = c(-Inf, -Inf), upper = c(Inf,Inf), sdlgs = seedlingSurv, light = light)
+
+outBinom$par # 1.01036 2.98204
+outBinom$val # nllik 2676.105
+myAIC <- 2 * 2 + 2 * outBinom$val # 5356.21
+
+```
+
+Plotting Binomial regression fit to the data:
+
+```{r}
+lightPred <- light[order(light)]
+plot(light, seedlingSurv)
+lines(lightPred, exp(outBinom$par[1] + outBinom$par[2] * lightPred) / (1 + exp(outBinom$par[1] + outBinom$par[2] * lightPred)), col = 'red', lwd = 2)
+```
+
+
+### 2. Compare your maximum likelihood fit to the R glm function.
+
+```{r}
+outglm <- glm(seedlingSurv ~ light, family = binomial, data = seedlingSurvData)
+summary(outglm)
+```
+
+
+### 3.  Compare your fit to Stan using brms library
+
+```{r}
+library(brms)
+
+outStan <- brm(formula = seedlingSurv ~ light,
+            data = seedlingSurvData, family = bernoulli())
+
+summary(outStan)
+plot(outStan)
+
+
+outStan1 <- brm(formula = seedlingSurv ~ light,
+            data = seedlingSurvData, family = binomial(),
+            prior = c(set_prior("normal(1,100)", class = "b")),
+            warmup = 1000, iter = 2000, chains = 4)
+
+summary(outStan1)
+plot(outStan1)
+```
+
+
+### 4. Compare your fit to Stan using rstanarm library
+
+```{r}
+library(rstanarm)
+outrstanarm <- stan_glm(seedlingSurv ~ light, data = seedlingSurvData, family = binomial, iter = 2000, warmup = 1000, cores = 4)
+
+summary(outrstanarm)
+plot(outrstanarm)
+```
+
+
+### 5. Fit the binomial regression using Rstan
+
+```{r}
+modelString <- "
+data {
+  int<lower=0> N;
+  real<lower=0,upper=1> light[N];
+  int<lower=0> seedlingSurv[N];
+}
+
+parameters {
+  real beta0;
+  real beta1;
+}
+
+transformed parameters {
+  real <lower=0> mu[N];
+  
+  for(i in 1:N){
+    mu[i] = exp(beta0 + beta1 * light[i]) / (1 + exp(beta0 + beta1 * light[i]));
+  }
+}
+
+model {
+  seedlingSurv ~ bernoulli(mu);
+}
+"
+```
+
+
+```{r}
+library(rstan)
+myData <- list(seedlingSurv = seedlingSurv, light = light, N = length(light))
+
+resStan <- stan(model_code = modelString, data = myData,
+                chains = 3, iter = 3000, warmup = 500, thin = 10)
+summary(resStan, par = c('beta0', 'beta1'))
+```
+
+```{r}
+library(coda)
+post_fit <- As.mcmc.list(resStan, c('beta0','beta1')) 
+plot(post_fit)
+```
+
+
+### 6. Fit the binomial regression using Rjags
+
+```{r}
+modelString <- "
+model {
+	for (i in 1:N){
+		seedlingSurv[i] ~ dbern(p[i])
+		p[i] <- 1 / (1 + exp(-z[i]))
+		z[i] <- beta0 + beta1 * light[i]
+	}
+	beta0 ~ dnorm(0, 0.0001)
+	beta1 ~ dnorm(0, 0.0001)
+}
+"
+
+writeLines(modelString, con='/Users/Taylor/Documents/UVM/PBIO 294/hw7/poissonReg.jags.txt')
+```
+
+```{r}
+library(rjags)
+jags <- jags.model('/Users/Taylor/Documents/UVM/PBIO 294/hw7/poissonReg.jags.txt',
+                   data = list('seedlingSurv' = seedlingSurv,
+                               'light' = light,
+                               'N' = length(light)),
+                   inits<-list(
+                       list('beta0'=1,'beta1'=2),
+                       list('beta0'=1,'beta1'=.2),
+                       list('beta0'=.1,'beta1'=2),
+                       list('beta0'=2,'beta1'=5)),
+                   n.chains = 4,
+                   n.adapt = 100)
+```
+
+```{r}
+update(jags, 1000)
+
+jags.samples(jags,
+             c('beta0', 'beta1'),
+             10000)
+```
+
+```{r}
+library(coda)
+codaSamples <- coda.samples(jags, c('beta0', 'beta1'), 10000, 1)
+```
+
+```{r}
+plot(codaSamples, trace = FALSE, density = TRUE)
+summary(codaSamples)
+traceplot(codaSamples)
+```
+
+

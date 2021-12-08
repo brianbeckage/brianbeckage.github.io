@@ -1,0 +1,18 @@
+
+model{
+    for (i in 1:N) {
+      seedLost[i] ~ dbern(theta[i])
+      logit(theta[i]) = beta0[i] + beta1*gap[i] 
+      beta0[i] ~ dgamma(mu[i]^2/variance,mu[i]/variance) 
+      log(mu[i]) = beta2 + beta3*mass[i] - beta4*(mass[i])^2      
+    }
+  
+  #priors
+    variance ~ dgamma(0.001,0.001)
+    beta1 ~ dnorm(0,100)
+    beta2 ~ dnorm(0,100)
+    beta3 ~ dnorm(0,100)
+    beta4 ~ dnorm(0,100)
+
+  }
+

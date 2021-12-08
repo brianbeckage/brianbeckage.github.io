@@ -1,0 +1,184 @@
+---
+title: "RKT_EcoMod_final_analysis"
+author: "R Kirsten Tyler"
+date: "12/10/2017"
+output: html_document
+---
+
+*Delta_PD Analysis*
+
+```{r}
+library(reshape2)
+library(ggplot2)
+library(lme4)
+library(rjags)
+library(coda)
+library(mcmcplots)
+library(lattice)
+setwd("~/Documents/Ecological Modeling")
+```
+
+Rejmanek & Richardson dataset
+```{r}
+RR_data <- read.csv("~/Documents/Ecological Modeling/final_data.csv", header = TRUE)
+head(RR_data)
+str(RR_data)
+```
+
+Clean up data
+```{r}
+#replacing NAs with 0: 
+RR_data[1:751, 1:18 ][is.na(RR_data[1:751, 1:18])] <- 0
+
+#melting data from wide to long format:
+RR1 <- melt(RR_data, id.vars = c("Species", "Life_form", "Origin_PD"),
+            measure.vars = c("NAM", "EU", "ME", "AS", "IND", "PI", "NZ", "AUS", "INDO", "SAFR", "AFR", "ATLI", "SAM", "CAR", "CAM"),
+            variable.name = "Intro_range",
+            value.name = "Inv")
+
+#adding Intro_PD column with values for all introduced regions:
+RR1$Intro_PD = rep(NA, nrow(RR1)) 
+head(RR1)
+
+which_replace <- which(RR1$Intro_range == "NAM")
+RR1$Intro_PD[which_replace] <- 0.614
+
+which_replace <- which(RR1$Intro_range == "EU")
+RR1$Intro_PD[which_replace] <- 0.542
+
+which_replace <- which(RR1$Intro_range == "ME")
+RR1$Intro_PD[which_replace] <- 0.518
+
+which_replace <- which(RR1$Intro_range == "AS")
+RR1$Intro_PD[which_replace] <- 0.694
+
+which_replace <- which(RR1$Intro_range == "IND")
+RR1$Intro_PD[which_replace] <- 0.65
+
+which_replace <- which(RR1$Intro_range == "PI")
+RR1$Intro_PD[which_replace] <- 0.74
+
+which_replace <- which(RR1$Intro_range == "NZ")
+RR1$Intro_PD[which_replace] <- 0.442
+
+which_replace <- which(RR1$Intro_range == "AUS")
+RR1$Intro_PD[which_replace] <- 0.663
+
+which_replace <- which(RR1$Intro_range == "INDO")
+RR1$Intro_PD[which_replace] <- 0.61
+
+which_replace <- which(RR1$Intro_range == "SAFR")
+RR1$Intro_PD[which_replace] <- 0.601
+
+which_replace <- which(RR1$Intro_range == "AFR")
+RR1$Intro_PD[which_replace] <- 0.68
+
+which_replace <- which(RR1$Intro_range == "ATLI")
+RR1$Intro_PD[which_replace] <- 0.459
+
+which_replace <- which(RR1$Intro_range == "SAM")
+RR1$Intro_PD[which_replace] <- 0.684
+
+which_replace <- which(RR1$Intro_range == "CAR")
+RR1$Intro_PD[which_replace] <- 0.712
+
+which_replace <- which(RR1$Intro_range == "CAM")
+RR1$Intro_PD[which_replace] <- 0.655
+
+summary(RR1)
+
+#creating a col Delta_PD:
+RR1$Delta_PD <- (RR1$Origin_PD - RR1$Intro_PD) #the difference between origin pd and intro pd. this is saying if the number is negative, then the intro pd is larger than the origin pd (and i'm predicting that Inv will be 0 for those)
+head(RR1)
+```
+
+Formulate frequentist binomial GLM using lme4
+```{r}
+#fit a logistic regression to the data
+R2<-glm(Inv~Delta_PD, family = binomial(link = logit), data=RR1)
+summary(R2)
+```
+
+Simulate data for a binomial regression
+```{r}
+beta.0<- -1.0; beta.1<-3.0
+Delta_PD<-runif(1000)
+pVect<-exp(beta0+beta1*Delta_PD)/(1+exp(beta0+beta1*Delta_PD))
+range(pVect)
+Inv<-rbinom(n=length(Delta_PD),size=1,prob=pVect)
+RR1<-data.frame(Delta_PD,Inv) 
+plot(Delta_PD,Inv)
+```
+
+JAGS!
+```{r}
+#specify model
+modelString<-"
+model {
+  for (i in 1:N){ #for loop to iterate over data. 
+    y[i] ~ dbern(theta.hat[i]) #indicate the data come from a binomial (Bernoulli) distribution
+    logit(theta.hat[i]) <- beta.0 + beta.1 * x[i] #equation of the model
+  }
+beta.0 ~ dnorm(0, 0.000001) #normal prior - low precision, high variance
+beta.1 ~ dnorm(0, 0.000001) #normal prior - low precision, high variance
+}
+"
+writeLines(modelString, con='R2.txt') #write this model to wd
+
+#let's give it a go...calling jags model
+jags.m <- jags.model(file = "R2.txt", 
+                     data = list(y = RR1$Inv, #dependent variable
+                                 x = RR1$Delta_PD, #independent variable
+                                 N = length(y)), #number of trials
+                     inits = list( #initial starting values for each of 4 chains
+                        list('beta.0' = 1, 'beta.1' = 2), 
+                        list('beta.0' = 1, 'beta.1' = 0.2),
+                        list('beta.0' = 0.1, 'beta.1' = 2),
+                        list('beta.0' = 2, 'beta.1' = 5)),
+                     n.chains = 4, #4 chains to test for mixing
+                     n.adapt = 100) #Jags is testing efficiency and adjusting - it will adjust and adapt for 100 time steps.
+                      #OHMAGOD IT WORKED
+```
+
+Update model
+```{r}
+update(jags.m, 1000) #burn-in period
+```
+
+Sample from model 
+```{r}
+#collect posterior samples
+params <- c("beta.0", "beta.1")
+samples <- coda.samples(jags.m, params, n.iter = 5000)
+plot(samples, density = FALSE)
+traceplot(samples)
+
+#check Gelman-Rubin diagnostic to assess convergence
+gelman.diag(samples) #this numerical check estimates how much variance there is between chains compared to the variance within chains.
+gelman.plot(samples) #visualize gelman-rubin statistic to assess convergence
+densityplot(samples) #density plot which shows the smoothed histograms of parameter values that are sampled in each chain
+
+```
+
+Model output
+```{r}
+print(jags.m)
+summary(samples) #model output
+#burn_in <- 2000
+#round(summary(window(samples, start = burn_in))$quantiles[,
+# + c(3, 1, 5)], 2) #same as summary(samples)
+
+jagsmcmc <- as.mcmc.list(samples)
+jagsmcmat <- as.matrix(jagsmcmc)
+jagsmcdf <- as.data.frame(jagsmcmat) #each row contains an iteration from samples, and each col id's one parameter (such as regression coefficients)
+head(jagsmcdf)
+
+#create regression dot plot
+caterplot(jagsmcmat)
+
+xyplot(samples)
+autocorr.plot(samples)
+
+```
+
+

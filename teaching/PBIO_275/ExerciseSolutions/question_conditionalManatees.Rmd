@@ -1,0 +1,162 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+1. What would adding an interaction term between sex and weight mean in the !Kung data? Write down its statistical representation.  Add the interaction term to the model and use AIC or WAIC to compare a model with weight, weight + sex, and weight + sex + weight:sex using using  lm() or quap (or ulam or Nimble or Stan).
+
+
+Loading and scaling the data
+```{r}
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d2 <- d[ d$age >= 18 , ]
+head(d2)
+plot(height~weight, data=d2)
+
+# Scaling the predictor variable weight to mean = 0, sd = 1.
+d3<-d2
+d3[,'weight']<- (d3$weight-mean(d3$weight)) / sd(d3$weight)
+plot(height~weight, data=d3)
+
+
+```
+
+
+Using lm()
+
+height~Normal(mu,sigma)
+
+mu<-intercept + betaWeight * Weight + betaMale * male + interaction * Weight * male
+
+mu<-intercept + gammaWeight * Weight + betaMale * male
+gammaWeight<- betaWeight + betaWM*male
+
+```{r}
+outInteraction<-lm(height~weight + male + male:weight, data=d3)
+# outInteraction<-lm(height~weight*male, data=d3)
+summary(outInteraction,correlation=TRUE) # # correlation about -0.99
+
+library(stats)
+sigma(outInteraction)
+AIC(outInteraction)
+BIC(outInteraction)
+
+
+
+```
+
+
+
+AIC of model with weight + sex + weight:sex -> 2026.311
+AIC of model with weight + sex-> 2026.211 
+AIC of model with weight-> 2148.024
+
+BIC of model with weight + sex + weight:sex -> 2045.629
+BIC of model with weight + sex->2041.665
+
+```{r}
+library(ggplot2)
+p<-ggplot(d3,aes(y=height, x=weight, color=factor(male))) + geom_point()
+p
+
+q<-ggplot(d3,aes(y=height, x=weight)) + geom_point()
+q<-q+facet_grid(cols=vars(male))
+q+geom_abline(intercept = c(0, .2, -.2), slope = 1,  
+                 color = c("blue", "red", "red"))
+
+
+```
+
+
+
+
+Using quap
+```{r}
+library(rethinking)
+
+modelWeight <- quap(
+    alist(
+        height ~ dnorm( mu , sigma ) ,
+        mu <- intercept + betaW*weight,
+        intercept ~ dnorm( 100 , 100 ) ,
+        betaW~dnorm(0,5),
+        sigma ~ dunif( 0 , 50 )
+    ) , data=d3 )
+
+modelWeightSex <- quap(
+    alist(
+        height ~ dnorm( mu , sigma ) ,
+        mu <- intercept + betaW*weight + betaM*male,
+        intercept ~ dnorm( 100 , 100 ) ,
+        betaM ~ dnorm( 0 , 5 ) ,
+        betaW~dnorm(0,5),
+        sigma ~ dunif( 0 , 50 )
+    ) , data=d3 )
+
+modelInteraction <- quap(
+    alist(
+        height ~ dnorm( mu , sigma ) ,
+        mu <- intercept + betaW*weight + betaM*male + betaI*male*weight,
+        intercept ~ dnorm( 100 , 100 ) ,
+        betaM ~ dnorm( 0 , 5 ) ,
+        betaW~dnorm(0,5),
+        betaI~dnorm(0,5),
+        sigma ~ dunif( 0 , 50 )
+    ) , data=d3 )
+
+# precis(modelQUAP)
+# WAIC(modelQUAP)
+compare(modelWeight , modelWeightSex ,modelInteraction , func=WAIC) # to compare multiple models
+
+```
+
+Using Nimble
+
+First, defining the statistical model
+
+```{r}
+library(nimble)
+
+statModel <- nimbleCode({
+  intercept ~ dnorm(100, sd = 100)
+  betaW ~ dnorm(0, sd = 10)
+  betaM ~ dnorm(0, sd = 10)
+  betaI~ dnorm(0, sd = 10)
+  sigma ~ dunif(0, 50)  
+  for(i in 1:N) {
+    mu[i]<-intercept + betaW*weight[i] + betaM*male[i] + betaI*male[i]*weight[i]
+    height[i] ~ dnorm(mu[i], sd = sigma) 
+  }
+})
+
+```
+
+Next setting the data and starting conditions
+
+```{r}
+myConstants <- list(N = dim(d3)[1])
+myData <- list(weight = d3$weight, height = d3$height, male=d3$male)
+myInits <- list(intercept = mean(d3$height), betaW = 0, betaM = 0, betaI = 0, sigma = sqrt(var(d3$height)))
+```
+
+
+Running the model
+
+```{r}
+mcmc.out <- nimbleMCMC(code = statModel, data = myData, inits = myInits,
+                       monitors = c("intercept", "betaW","betaM","betaI","sigma"), 
+                       thin = 10,
+                       niter = 10000, nburnin=1000,
+                       nchains = 1, setSeed = FALSE,
+                       constants = myConstants,samplesAsCodaMCMC=TRUE)
+```
+
+Examining model fit
+
+```{r}
+library(coda)
+summary(mcmc.out)
+```
+

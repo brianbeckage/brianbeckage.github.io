@@ -1,0 +1,224 @@
+---
+title: "HW PALAWAT 12/1/17"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+### Binomial Regression Model 
+
+We observed seedling survival in a in a forest.  At each seedlng, we measure an integrated metric of light levels.  We want to estimate a logistic regression model for these data to determine the relationship between light levels and seedlng survival.  The model will be of the form:
+logit(p)<-beta0 + beta1 * light
+seedling ~ binomial(n=1, p)
+
+Repeat steps 1-6 from the Poisson regression model above except for the binomial model.
+
+Please use the following code to simulate data in order to recapture model paramters (beta0 and beta1):
+
+Simulating data for a binomial regression. 
+
+
+Simulate data.
+```{r, echo=TRUE}
+
+set.seed(111517)
+beta0=1.0
+beta1=3.0
+light=runif(1000)
+pVect<-exp(beta0+beta1*light)/(1+exp(beta0+beta1*light))
+
+seedlingSurv<-rbinom(n=length(light),size=1,prob=pVect)
+
+seedlingSurvData<-data.frame(light,seedlingSurv) # if you want a data frame
+plot(light,seedlingSurv)
+
+```
+
+### 1. Fit the Binomial regression using maximum likelihood.
+
+The likelihood function:
+
+```{r, echo=TRUE}
+nllBinom=function(parVec,sdlgs,lght){
+    b0=parVec[1]
+    b1=parVec[2]
+  sdlgPred=exp(b0+b1*lght)/(1+exp(b0+b1*lght))
+  nllik=-sum(dbinom(x=sdlgs,size=1, prob=sdlgPred,log=TRUE))
+  return(nllik)
+}
+```
+
+Maximum likelihood estimates
+```{r, echo=TRUE}
+parVec<-c(.5,.5) # Initial parameter values 
+outBinom<-optim(par=parVec, fn=nllBinom,method="L-BFGS-B",lower=c(-Inf,-Inf),upper=c(Inf,Inf),sdlgs=seedlingSurv,lght=light)
+outBinom$par # .9763, 2.9959
+outBinom$val # 303.3793
+myAIC<-2*2 + 2*outBinom$val 
+myAIC # 610.7586
+```
+
+Plotting Binomial regression fit to the data and showing data points:
+
+```{r, echo=TRUE}
+
+lightPred<-light[order(light)]
+plot(light,seedlingSurv)
+lines(lightPred, exp(outBinom$par[1]+outBinom$par[2]*lightPred)/(1+exp(outBinom$par[1]+outBinom$par[2]*lightPred)),col='red',lwd=2)
+
+```
+
+### 2. Compare your maximum likelihood fit to the R glm function. The values are so similar, they could be said to be the same. The maximum likelihood output has more decimal places, so is arguably more exact.
+
+```{r, echo=TRUE}
+outglm<-glm(seedlingSurv~light, family=binomial,data=seedlingSurvData)
+summary(outglm) #.9763, 2.9960
+```
+
+### 3.  Compare your fit to Stan using brms library. The bernoulli family was suggested instead of binomial which I used orignally, so I switched it out. The values are very close to both the real values and the other regressions, but the intercept is more exact here than in the other methods. The slope is less so with a value of 2.85. This method also outputs relatively few decimal places.
+
+```{r, echo=TRUE}
+
+library(brms)
+outStan <- brm(formula = seedlingSurv ~ light,
+            data = seedlingSurvData, family = bernoulli())
+
+outStan1 <- brm(formula = seedlingSurv ~ light,
+            data = seedlingSurvData, family = bernoulli(),
+            prior = c(set_prior("normal(0,100)", class = "b")),
+            warmup = 1000, iter = 2000, chains = 4)
+
+summary(outStan)
+summary(outStan1)
+plot(outStan1)
+plot(outStan)
+
+plot(marginal_effects(outStan1), points = TRUE)
+```
+
+### 4. Compare your fit to Stan using rstanarm library. The estimates from this library were the closest to real values than any of the other fits so far.
+
+```{r, echo=TRUE}
+
+library(rstanarm)
+outrstanarm<-stan_glm(seedlingSurv ~ light,data = seedlingSurvData, family = binomial, iter=2000, warmup=1000, cores=4)
+
+summary(outrstanarm)
+plot(outrstanarm)
+
+```
+
+### 5. Fit the Binomial regression using Rstan.
+
+Write Data
+```{r, echo=TRUE}
+library(rstan)
+myData<-list(seedlingSurv=seedlingSurv,light=light,N=length(light))
+
+```
+
+Write Model String
+```{r, echo=TRUE}
+modelString<-"data {
+  int<lower=0> N;
+  real<lower=0,upper=1> light[N];
+  int<lower=0> seedlingSurv[N];
+}
+
+parameters {
+  real beta0;
+  real beta1;
+}
+
+transformed parameters {
+  real lp[N];
+  real <lower=0> mu[N];
+  
+  for(i in 1:N){
+    lp[i] = beta0 + beta1 * light[i];
+    mu[i] = exp(lp[i])/(1+exp(lp[i]));
+  }
+}
+
+model {
+  seedlingSurv ~ binomial(1, mu);
+}"
+```
+
+Run chains
+```{r, echo=TRUE}
+resStan <- stan(model_code = modelString, data = myData,
+                chains = 3, iter = 3000, warmup = 500, thin = 10)
+summary(resStan,par=c('beta0','beta1'))
+```
+
+Generate (a ton) of graphs displaying traceplots and density plots. All the graphs kept screwing up my markdown file so I left them un-run here. But this piece of code does work and I did look through some of the graphs to make sure they were traceplots and density plots.
+```{r, echo=TRUE}
+library(coda)
+post_fit<-As.mcmc.list(resStan) 
+plot(post_fit)
+```
+
+
+### 6. Fit the Binomial regression using Rjags
+
+Write model string to text file.
+```{r, echo=TRUE}
+library(rjags)
+
+modelString<-"
+model {
+  for (i in 1:N){
+    seedlingSurv[i] ~ dbin(p[i], 1)
+    logit(p[i]) <- beta0 + beta1 * light[i]
+  }
+  beta0 ~ dnorm(0, .0001)
+  beta1 ~ dnorm(0, .0001)
+}
+"
+writeLines(modelString, con='binomialReg.jags.txt')
+```
+
+Run chains.
+```{r, echo=TRUE}
+jags <- jags.model('binomialReg.jags.txt',
+                   data = list('seedlingSurv' = seedlingSurv,
+                               'light' = light,
+                               'N' = length(light)),
+                   inits<-list(
+                       list('beta0'=1,'beta1'=2),
+                       list('beta0'=1,'beta1'=.2),
+                       list('beta0'=.1,'beta1'=2),
+                       list('beta0'=2,'beta1'=5)),
+                   n.chains = 4,
+                   n.adapt = 100)
+```
+
+Burn in and estimates.
+```{r, echo=TRUE}
+update(jags, 1000)
+
+jags.samples(jags,
+             c('beta0', 'beta1'),
+             10000)
+```
+
+Use coda library to plot estimate MCMCs.
+```{r, echo=TRUE}
+library(coda)
+codaSamples<-coda.samples(jags, c('beta0','beta1'), 10000, 1)
+```
+
+```{r, echo=TRUE}
+plot(codaSamples, trace = FALSE, density = TRUE)
+summary(codaSamples)
+traceplot(codaSamples)
+```
+
+I want to say that this has been one of my favorite assignments this semester. I really liked learning all these different methods to simulate regressions and fit data. It is also interesting comparing the outputs to all the different methods when they all have the same inputs.
+
+
+
+
+
+
+

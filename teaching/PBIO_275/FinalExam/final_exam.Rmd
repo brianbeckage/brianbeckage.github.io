@@ -1,0 +1,48 @@
+---
+title: "R Notebook"
+output: Final Exam
+---
+
+Below are the three questions for the PBIO 294 Final Exam.  All work must be your own.  Reference to outside sources should be limited to the documentation for R, Stan, JAGS, or general questions regarding pdf's, etc.  This exam is due by midnight, Monday, 11 Dec 2017. 20% will be deducted for each additonal 6 hours that this exam is turned in late. Please email your R/.Rmd file to brian.beckage@uvm.edu.
+
+
+1. (30 points) An ecologist is interested in the intermediate disturbance hypothesis (IDH) 
+that postulates that the highest species richness should be found at intermediate levels of 
+disturbance. Write a  likelihood function to estimate the  
+parameters for a quadratic regression models given in Beckage and Stout 2000 
+(http://www.uvm.edu/~bbeckage/Manuscripts/BeckageStout.corrected.2000.jvs.pdf), 
+but assuming a Poisson likelihood with a log link function.  Provide your i. *likelihood function and supporting R code for finding the MLE's*, ii. a *plot of the data with the fitted line* and iii. report the *regression parameters (bo, b1, and b2)*, and iv. the value of the *negative log likelihood at the MLEs*.  Note:  You must write your own likelihood function and not use a built in R function or package, e.g, lm, glm, etc.
+
+The data may be read using:
+```{r}
+srDat<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/idh.csv",sep=',',header=TRUE)
+```
+
+
+
+2. (30 points) Repeat exercise 1 except now fitting the model using either Rstan or Rjags.  You must write your own Stan/JAGS model, meaning that you can not use one of the Stan helper libraries such as the brms or rstanarm libraries. Provide your i. *Stan/JAGS model code and supporting R code for running the Stan/JAGS model*, ii. report the *2.5%, 50%, and 97.5% percentiles for the regression parameters (bo, b1, and b2)*, iii. *plot the posterior distributions for each of these parameters* and iv. *assess the convergence of your chains using the Gelman-Rubin statistic.* 
+
+
+
+
+3. (40 points) An ecologist expects seed predation to be influenced by the presence of openings (gaps) in the forest overstory and seed mass. The effect of seed mass on predation is expected be quadratic:  Small seeds will be less predated because they offer a lower energetic reward while larger seeds will be too difficult to process, so that medium sized seeds will be most predated.  The effect of a gap is additive with lower predation expected in gaps because seed predators avoid areas of open canopy. The ecologist models the data as a hierarchical logistic regression, assuming that the seed masses are known without observation error.  The model has the form:
+
+Seed lost ~ Binomial(theta) # 1 if seed is predated, 0 if seed is left alone
+Logit(theta) = b0i + b1 x gap 
+b0i ~ gamma(mu^2/sd^2,mu/sd^2) 
+mui = b2 + b3 x seed mass i - b4 x (seed mass i)^2 
+sd^2 ~ gamma(0.001,0.001)
+b1,b2,b3,b4 ~ normal(0,100)
+
+Fit this model using either Rstan or Rjags.  You must write your own Stan/JAGS model, meaning that you can not use one of the Stan helper libraries such as the brms or rstanarm libraries. Provide your i. *Stan/JAGS model code and supporting R code for running the Stan/JAGS model*, ii. report the *2.5%, 50%, and 97.5% percentiles for the regression parameters (b1, b1, b2, b3, and b4)*, iii. *plot the posterior distributions for each of these parameters* and iv. *assess the convergence of your chains using the Gelman-Rubin statistic.*
+
+The data can be read using:
+```{r}
+seeds<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/seeds.csv",sep=',',header=TRUE)
+```
+
+
+
+
+
+

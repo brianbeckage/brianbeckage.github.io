@@ -1,0 +1,151 @@
+---
+title: "Bayesian GLMs"
+output: html_notebook
+---
+
+Binomial / logistic regression
+
+```{r}
+data("Panda_nuts")
+d<-Panda_nuts
+d$helpN<-as.numeric(d$help)-1
+plot(helpN~age, data=d)
+```
+
+```{r}
+out<-glm(helpN~age,family=binomial(link = "logit"),data=d)
+summary(out)
+
+plot(helpN~age, data=d)
+# exp(intercept + beta*age) / (1 + exp(intercept + beta*age) )
+# 
+curve((exp(out$coefficients[1] + out$coefficients[2]*x) / (1+exp(out$coefficients[1] + out$coefficients[2]*x))),add=TRUE)
+```
+
+```{r}
+
+d_trim <- list(help=d$helpN,A=d$age)
+  
+nutCracking_stan <- ulam(
+    alist(
+        help ~ dbinom(1,p),
+        logit(p) <- intercept + bA * A,
+        intercept ~ dnorm(0,1.5),
+        bA ~ dnorm(0,1.5)
+    ) , data = d_trim ,chains=4, log_lik=TRUE, iter=10000 )
+
+precis(nutCracking_stan)
+
+
+```
+
+```{r}
+d_trim <- list(help=d$helpN,A=d$age)
+  
+nutCracking_stanPrior2 <- ulam(
+    alist(
+        help ~ dbinom(1,p),
+        logit(p) <- intercept + bA * A,
+        intercept ~ dnorm(0,10),
+        bA ~ dnorm(0,10)
+    ) , data = d_trim, chains=4, log_lik=TRUE, iter=10000  )
+
+precis(nutCracking_stanPrior2)
+```
+
+
+Fitting the binomial regression using our own likelihood function
+
+```{r}
+nllBinomReg<-function(parVec,data=d){
+  help<-data$helpN
+  age<-data$age
+  intercept<-parVec[1]
+  beta<-parVec[2]
+  p<-exp(intercept + beta*age) / (1 + exp(intercept + beta*age) )
+  nllik<- -sum(dbinom(x=help,size=1, prob=p,log=TRUE))
+  #browser()
+  return(nllik)
+}
+```
+
+
+```{r}
+parVec<-c(1.0,0.5)
+out<-optim(par=parVec,fn=nllBinomReg,method="L-BFGS-B",
+               lower=c(-Inf,-Inf),upper=c(Inf,Inf))
+# 
+AIC<- 2*out$value + 2*2
+
+out$par
+AIC
+```
+```{r}
+nllBinomReg(out$par)
+out$value
+```
+
+
+
+Poisson Regression
+
+```{r}
+library(rethinking)
+data(foxes)
+d<-foxes
+
+d$area_cent <- (d$area - mean(d$area) )/ sd(d$area)
+plot(groupsize~area_cent, data=d)
+
+```
+
+Using glm() in R
+
+```{r}
+out<-glm(groupsize~area_cent,family=poisson(link = "log"),data=d)
+summary(out)
+
+plot(groupsize~area_cent, data=d)
+# log(lambda) = intercept + beta*area_cent
+# lambda = exp(intercept + beta*area_cent)
+curve(exp(out$coefficients[1] + out$coefficients[2]*x),add=TRUE)
+
+```
+
+
+```{r}
+
+d_trim <- list(groupsize=d$groupsize,A=d$area_cent)
+  
+foxes_stan <- ulam(
+    alist(
+        groupsize ~ dpois(lambda),
+        log(lambda) <- intercept + bA * A,
+        intercept ~ dnorm(0,5),
+        bA ~ dnorm(0,5)
+    ) , data = d_trim,chains=4,log_lik=FALSE )
+
+precis(foxes_stan)
+
+```
+
+```{r}
+traceplot(foxes_stan)
+trankplot(foxes_stan)
+```
+
+```{r}
+extract.samples(foxes_stan,n=10)
+```
+
+```{r}
+link(foxes_stan,n=10)
+```
+```{r}
+postcheck(foxes_stan)
+```
+```{r}
+mySim<-sim(foxes_stan,n=10,data=list(A=c(-1,0,1)))
+apply(mySim,2,mean)
+```
+

@@ -1,0 +1,243 @@
+---
+title: "PBIO 294 Final Project"
+author: "Jen Santoro"
+date: "December 10, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+**Instructions:**   
+Data analysis project for grad students: Graduate students are expected to report on an analysis of a data set of their choosing. This report is due at the end of the scheduled final exam period. The report will consist of a brief introduction to the problem or question (1 page), a methods section describing the data and analysis (3 pages), a results section that presents the results of the analysis (2 pages) and a short discussion of the results in a discussion section (2 pages). There should be a maximum of 5 tables and/or figures (combined total). The report should use 12 point font and be concise and well written. Your R code must be included along with test / simulated data with known parameters that can be recaptured to insure that the code works.  
+
+**Research question: how does Shannon Diversity of regenerating tree stems differ based on the volume of Coarse Woody Debris present? Does this also vary by treatment type?**  
+
+**Part 1: Set-up and Data Simulation**  
+This project will use simulated data in place of actual data collected. To simulate the data, distirubtion parameters were extracted from the original dataset. Because the data were collected across three treatment types (blowdown, control, and salvage), parameters were simulated individually for each treatment and then combined into one dataframe for analysis. Simulate parameters for 120 plots (40 of each treatment) are coarse woody debris volume (cwd) in m3/ha and Shannon Diversity.  
+```{r}
+# Simulate data based off actual means and sds from real data. 
+# blowdown (tornado-damaged) plots:
+b.cwd <- rnorm(n=40, mean=300, sd=75)    # simulated CWD data
+b.shan <- rnorm(n=40, mean=1.3, sd=0.3)  # simulated diversity data
+blowdown <- rep("blowdown", 40)          # vector for treatment type (for later use in dataframe)
+
+# control plots:
+c.cwd <- 50 * rgamma(40, 1, 1)           # multiplied by 50 so values are in line with actual data
+c.shan <- rnorm(n=40, mean=1.1, sd=0.2)
+control <- rep("control", 40)
+
+# salvaged plots:
+s.cwd <- 40 * rgamma(40, 1, 1)
+s.shan <- rnorm(n=40, mean=0.8, sd=0.3)
+salvage <- rep("salvage", 40)
+
+
+# Combine blowdown, control, and salvage, and vectorize the data
+cwd.vec <- as.vector(rbind(b.cwd, c.cwd, s.cwd)) 
+cwd.name <- "cwd"
+shan.vec <- as.vector(rbind(b.shan, c.shan, s.shan))
+shan.name <- "shandiv"
+plotid.vec <- seq(from=1, to=120, by=1)
+plotid.name <- "plotid"
+trt.vec <- as.vector(cbind(blowdown, control, salvage))
+trt.name <- "trt"
+
+
+# Combine vectorized data into dataframe
+mydf <- data.frame(plotid.vec, trt.vec, cwd.vec, shan.vec)
+colnames(mydf) <- c(plotid.name, trt.name, cwd.name, shan.name)
+mydf
+
+
+# Plot simulated data
+bsfcol <- c("orange", "blue", "green")
+bsfptype <- c("blowdown", "control", "salvage")
+plot(mydf$cwd, mydf$shandiv, col=bsfcol, cex=1.5, main="Regeneration Diversity by CWD Volume", xlab = "CWD volume (m3/ha)", ylab="Shannon Index")
+legend("bottomright", legend=bsfptype, fill=bsfcol)
+
+
+```
+
+
+**Part 2: Run models in JAGS**  
+
+Model 1: Complete pooling model. This model starts simply by only considering CWD and Shannon Diversity - no treatment type involved. In other words, all three treatments are "pooled" together in this model.  
+```{r}
+library(rjags)
+library(runjags)
+library(coda)
+
+# Vectorize data for use in JAGS model
+y <- mydf$shandiv
+x <- mydf$cwd
+n <- length(y)
+
+# Set up JAGS model string
+mod1 <- "
+model {
+ for(i in 1:n) {
+  y[i] ~ dnorm(y.hat[i], tau.y)
+  y.hat[i] <- a + b1 * x[i]     # a is the intercept
+}
+a ~ dnorm(0, 100)
+b1 ~ dnorm(0, 100)
+tau.y <- pow(sigma.y, -2)
+sigma.y ~ dunif(0, 10000)
+}
+"
+writeLines(mod1, con='mod1_jags.txt')
+
+mod1.jags <- jags.model('mod1_jags.txt',
+                        data = list('y' = y,
+                                    'x' = x,
+                                    'n' = n),
+                        inits <- list(
+                          list(a = 1, b1 = 1, sigma.y = 1),
+                          list(a = 0.1, b1 = 1, sigma.y = 0.1),
+                          list(a = 0.5, b1 = 0.1, sigma.y = 1),
+                          list(a = 1, b1 = 0.5, sigma.y = 0.5)),
+                        n.chains = 4,
+                        n.adapt = 100)
+update(mod1.jags, 1000)
+
+jags.samples(mod1.jags, c("a", "b1", "sigma.y"), 10000)
+
+# Summarize model
+coda1.jags<-coda.samples(mod1.jags, c("a", "b1", "sigma.y"), 10000, 1)
+plot(coda1.jags, trace = TRUE, density = TRUE)
+summary(coda1.jags)
+
+# Check DIC and chain convergence
+dic.samples(mod1.jags, n.iter=1000)
+# 80.76
+
+gelman.diag(coda1.jags) # ok chain convergence
+gelman.plot(coda1.jags)
+
+```
+
+Model 2: Separate intercepts for treatment types. This model considers treatment in the intercept, allowing for three different intercept values for each of the three treatment types.  
+```{r}
+# Set up variables for second model loop
+J <- length(unique(mydf$trt))
+trt <- as.numeric(factor(mydf$trt))   # 1=blowdown, 2=control, 3=salvage
+
+# Set up JAGS model string
+mod2 <- "
+model {
+ for(i in 1:n) {
+   y[i] ~ dnorm(y.hat[i], tau.y)
+   y.hat[i] <- a[trt[i]] + b1 * x[i]
+}
+ for(j in 1:J) {
+   a[j] ~ dnorm(0, 100)
+}
+b1 ~ dnorm(0, 100)
+tau.y <- pow(sigma.y, -2)
+sigma.y ~ dunif(0, 10000)
+}
+"
+writeLines(mod2, con='mod2_jags.txt')
+
+mod2.jags <- jags.model('mod2_jags.txt',
+                        data = list('y' = y,
+                                    'x' = x,
+                                    'n' = n,
+                                    'trt' = trt,
+                                    'J' = J),
+                        inits <- list(
+                          list(a = rnorm(J,0,100), b1 = 1, sigma.y = 1),
+                          list(a = rnorm(J,1,100), b1 = 1, sigma.y = 0.1),
+                          list(a = rnorm(J,0.5,100), b1 = 0.1, sigma.y = 1),
+                          list(a = rnorm(J,2,0.100), b1 = 0.5, sigma.y = 0.5)),
+                        n.chains = 4,
+                        n.adapt = 100)
+update(mod2.jags, 1000)
+
+jags.samples(mod2.jags, c("a", "b1", "sigma.y"), 10000)
+
+# Summarize model
+coda2.jags<-coda.samples(mod2.jags, c("a", "b1", "sigma.y"), 10000, 1)
+plot(coda2.jags, trace = TRUE, density = TRUE)
+summary(coda2.jags)
+
+# Check DIC and chain convergence
+dic.samples(mod2.jags, n.iter=1000)
+# 146.7
+
+gelman.diag(coda2.jags) # ok chain convergence
+gelman.plot(coda2.jags)
+
+```
+
+
+Model 3: Random intercepts for treatment types. This model also allows for separate intercepts for each of the three treatment types, but sets a hyperprior on each to hopefully improve model performance.  
+```{r}
+# Set up JAGS model string
+mod3 <- "
+model {
+ for(i in 1:n) {
+   y[i] ~ dnorm(y.hat[i], tau.y)
+   y.hat[i] <- a[trt[i]] + b1 * x[i]
+}
+ for(j in 1:J) {
+   a[j] ~ dnorm(a.hat[j], tau.a)
+   a.hat[j] <- mu.a
+}
+mu.a ~ dnorm(0, 100)
+tau.a <- pow(sigma.a, -2)
+sigma.a ~ dunif(0, 10000)
+b1 ~ dnorm(0, 100)
+tau.y <- pow(sigma.y, -2)
+sigma.y ~ dunif(0, 10000)
+}
+"
+writeLines(mod3, con='mod3_jags.txt')
+
+mod3.jags <- jags.model('mod3_jags.txt',
+                        data = list('y' = y,
+                                    'x' = x,
+                                    'n' = n,
+                                    'trt' = trt,
+                                    'J' = J),
+                        inits <- list(
+                          list(a = rnorm(J,0,100), b1 = 1, sigma.y = 1, mu.a = 1, sigma.a = 1),
+                          list(a = rnorm(J,1,100), b1 = 1, sigma.y = 0.1, mu.a = 0.1, sigma.a = 0.1),
+                          list(a = rnorm(J,0.5,100), b1 = 0.1, sigma.y = 1, mu.a = 0.5, sigma.a = 1),
+                          list(a = rnorm(J,2,0.100), b1 = 0.5, sigma.y = 0.5, mu.a = 1, sigma.a = 0.5)),
+                        n.chains = 4,
+                        n.adapt = 100)
+update(mod3.jags, 1000)
+
+jags.samples(mod3.jags, c("a", "b1", "sigma.y", "mu.a", "sigma.a"), 10000)
+
+# Summarize model
+coda3.jags<-coda.samples(mod3.jags, c("a", "b1", "sigma.y", "mu.a", "sigma.a"), 10000, 1)
+plot(coda3.jags, trace = TRUE, density = TRUE)
+summary(coda3.jags)
+
+# Check DIC and chain convergence
+dic.samples(mod3.jags, n.iter=1000)
+# 70.18
+
+gelman.diag(coda3.jags) # ok chain convergence
+gelman.plot(coda3.jags)
+
+```
+
+**Part 3: Plot Model Results**  
+```{r}
+# Model 3 was the best based on DIC, so I will plot those intercepts with a fixed b1 slope.
+plot(mydf$cwd, mydf$shandiv, col=bsfcol, cex=1.5, main="Regeneration Diversity by CWD Volume", xlab = "CWD volume (m3/ha)", ylab="Shannon Index")
+legend("bottomright", legend=bsfptype, fill=bsfcol)
+
+# add ablines for treatment slopes, from Model 3
+# abline(intercept, slope)
+abline(0.8459, 0.0014, col="orange")
+abline(0.9114, 0.0014, col="blue")
+abline(0.8160, 0.0014, col="green")
+
+```

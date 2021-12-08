@@ -1,0 +1,139 @@
+---
+title: "R Meeting 2 Exercise Solutions"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+1. 2E1.  Which of the expressions below correspond to the statement: 
+  the probability of rain on Monday?
+  (1)  Pr(rain)
+  (2)  Pr(rain|Monday) # CORRECT
+  (3)  Pr(Monday|rain)
+  (4)  Pr(rain, Monday)/ Pr(Monday) # CORRECT
+
+2. 2E2.  Which of the following statements corresponds to the expression: 
+   Pr(Monday|rain)?
+  
+  (1)  The probability of rain on Monday.
+  (2)  The probability of rain, given that it is Monday.
+  (3)  The probability that it is Monday, given that it is raining. # CORRECT
+  (4)  The probability that it is Monday and that it is raining.
+  
+3. 2E3.  Which of the expressions below correspond to the statement: 
+   the probability that it is Monday, given that it is raining?
+  
+  (1)  Pr(Monday|rain) # CORRECT
+  (2)  Pr(rain|Monday)
+  (3)  Pr(rain|Monday) Pr(Monday)
+  (4)  Pr(rain|Monday) Pr(Monday)/ Pr(rain) # CORRECT
+  (5)  Pr(Monday|rain) Pr(rain)/ Pr(Monday)
+
+4. 2M1.  Recall the globe tossing model from the chapter. 
+ Compute and plot the grid approximate posterior distribution 
+ for each of the following sets of observations. In each case, 
+ assume a uniform prior for p.
+ 
+  (1)  W, W, W
+  (2)  W, W, W, L
+  (3)  L, W, W, L, W, W, W
+  
+  
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=100 ) # likelihood of 3 water in 3 tosses
+likelihood <- dbinom( 3 , size=3 , prob=p_grid )
+prior <- rep(1,100) # uniform prior
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+ plot( posterior ~ p_grid , type="l" )
+```
+
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=100 ) # likelihood of 3 water in 4 tosses
+likelihood <- dbinom( 3 , size=4 , prob=p_grid )
+prior <- rep(1,100) # uniform prior
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+ plot( posterior ~ p_grid , type="l" )
+```
+
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=100 ) # likelihood of 3 water in 3 tosses
+likelihood <- dbinom( 5 , size=7 , prob=p_grid )
+prior <- rep(1,100) # uniform prior
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+ plot( posterior ~ p_grid , type="l" )
+```
+
+2M2.  Now assume a prior for p that is equal to zero when p < 0.5 and is a positive constant when p ≥ 0.5. Again compute and plot the grid approximate posterior distribution for each of the sets of observations in the problem just above.
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=100 ) # likelihood of 3 water in 3 tosses
+likelihood <- dbinom( 3 , size=3 , prob=p_grid )
+prior <- rep(1,100) # uniform prior
+prior[p_grid<0.5]<-0
+# alt: prior <- ifelse( p_grid < 0.5 , 0 , 1 ) 
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+ plot( posterior ~ p_grid , type="l" )
+```
+
+
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=100 ) # likelihood of 3 water in 3 tosses
+likelihood <- dbinom( 3 , size=4 , prob=p_grid )
+prior <- rep(1,100) # uniform prior
+prior[p_grid<0.5]<-0
+# alt: prior <- ifelse( p_grid < 0.5 , 0 , 1 ) 
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+ plot( posterior ~ p_grid , type="l" )
+```
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=100 ) # likelihood of 3 water in 3 tosses
+likelihood <- dbinom( 5 , size=7 , prob=p_grid )
+prior <- rep(1,100) # uniform prior
+prior[p_grid<0.5]<-0
+# alt: prior <- ifelse( p_grid < 0.5 , 0 , 1 ) 
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior) # standardize
+ plot( posterior ~ p_grid , type="l" )
+```
+
+
+
+CHALLENGE: 2H1.  Suppose there are two species of panda bear. Both are equally common in the wild and live in the same places. They look exactly alike and eat the same food, and there is yet no genetic assay capable of telling them apart. They differ however in their family sizes. Species A gives birth to twins 10% of the time, otherwise birthing a single infant. Species B births twins 20% of the time, otherwise birthing singleton infants. Assume these numbers are known with certainty, from many years of field research.
+
+Now suppose you are managing a captive panda breeding program. You have a new female panda of unknown species, and she has just given birth to twins. What is the probability that her next birth will also be twins?
+
+Pr(Twins|A) = 0.10
+Pr(Single|A) = 0.90
+
+Pr(Twins|B) = 0.20
+Pr(Single|B) = 0.80
+
+Pr(A|Twins)= Pr(Twins|A)*Pr(A) / Pr(Twins|A)*Pr(A) + Pr(Twins|b)*Pr(B)
+
+Pr(Twins| Twins)=Pr(Twins|A)*Pr(A) + Pr(Twins|B)*Pr(B) 
+```{r}
+pA<- 0.10 * 0.50 / (0.10 * 0.50 + 0.20 * 0.50)
+pB<-1-pA
+pTwins<-0.10*pA + 0.20*pB
+pTwins
+```
+
+  
+
+```{r}
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

@@ -1,0 +1,643 @@
+---
+title: "PBIO294_FinalProject_Izzo"
+author: "LisaIzzo"
+date: "November 20, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+##packages needed 
+library(lubridate) ##process dates 
+library(rjags) ##run bayesian models through JAGS 
+library(coda) ##visualize JAGS results 
+```
+
+```{r}
+##simulated data (for full model). Multiple JAGS models were specified and run for this analysis, so I have replicated a piece of it here for the simulated data. The data was simulated using the process of the full model. 
+
+beta0 = -2.0 #intercept
+beta1 = 0.2 #temperature 
+beta2 = -0.1 #temperature squared 
+beta3 = 2.0 #discharge 
+beta4 = -0.3 #discharge squared 
+beta5 = -3.0 #days since spring run off start 
+beta6 = -0.5 #day vs night (beta estimate for effect of night)
+
+
+temperature = runif(1000)
+temperature2 = temperature^2
+discharge = runif(1000)
+discharge2 = discharge^2
+DSSF = runif(1000)
+daynight = sample(c(0,1), size = 1000, replace = TRUE)
+
+
+pVect<-exp(beta0+beta1*temperature+beta2*temperature2+beta3*discharge+beta4*discharge2+beta5*DSSF+beta6*daynight)/(1+exp(beta0+beta1*temperature+beta2*temperature^2+beta3*discharge+beta4*discharge^2+beta5*DSSF+beta6*daynight))
+
+range(pVect)
+
+SturgeonPresent<-rbinom(n=length(temperature),size=1,prob=pVect)
+
+UpstreamSturgeon<-data.frame(SturgeonPresent,temperature,discharge,DSSF,daynight) 
+
+plot(UpstreamSturgeon$SturgeonPresent ~ UpstreamSturgeon$discharge) ##example 
+```
+
+```{r}
+##JAGS code for full model 
+
+FullModelSpawnRunJAGS <-"
+model {
+  ##likelihood 
+  for (i in 1:N){
+    SturgeonPresent[i] ~ dbinom(theta.hat[i], 1)
+    logit(theta.hat[i]) <- beta0 + beta1 * Pred1[i] + beta2 * Pred1_sq[i] + beta3 * Pred2[i] + beta4 * Pred2_sq[i] + beta5 * Pred3[i] + beta6 * Pred4[i]
+  }
+  ##priors
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
+  beta3 ~ dnorm(0, 0.001)
+  beta4 ~ dnorm(0, 0.001)
+  beta5 ~ dnorm(0, 0.001)
+  beta6 ~ dnorm(0, 0.001)
+}
+"
+
+writeLines(FullModelSpawnRunJAGS, con='FullModelSpawnRunJAGS.txt')
+
+##JAGS code for partial model (only one quadratic parameter included)
+
+QuadraticSpawnRunJAGS <-"
+model {
+  for (i in 1:N){
+    SturgeonPresent[i] ~ dbinom(theta.hat[i], 1)
+    logit(theta.hat[i]) <- beta0 + beta1 * Pred1[i] + beta2 * Pred1_sq[i]
+  }
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
+}
+"
+
+writeLines(QuadraticSpawnRunJAGS, con='QuadraticSpawnRunJAGS.txt')
+```
+
+```{r}
+##Run full model with simulated data frame 
+
+SpawnRunSimFull <- jags.model('FullModelSpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SturgeonPresent,
+                          'Pred1' = temperature,
+                          'Pred1_sq' = temperature2,
+                          'Pred2' = discharge,
+                          'Pred2_sq' = discharge2,
+                          'Pred3' = DSSF,
+                          'Pred4' = daynight,
+                          'N' = length(SturgeonPresent)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunSimFull, 1000)
+jags.samples(SpawnRunSimFull, c('beta0','beta1', 'beta2', 'beta3', 'beta4', 'beta5', 'beta6'), 10000, 1)
+SpawnRunSimFullCoda<-coda.samples(SpawnRunSimFull, c('beta0','beta1', 'beta2', 'beta3', 'beta4', 'beta5', 'beta6'), 10000, 1)
+
+
+##Run partial model with simulated data frame 
+SpawnRunTempQSim <- jags.model('QuadraticSpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SturgeonPresent,
+                          'Pred1' = temperature,
+                          'Pred1_sq' = temperature2,
+                          'N' = length(SturgeonPresent)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunTempQSim, 1000)
+jags.samples(SpawnRunTempQSim, c('beta0','beta1', 'beta2'), 10000, 1)
+SpawnRunTempQSimCoda<-coda.samples(SpawnRunTempQSim, c('beta0','beta1', 'beta2'), 10000, 1)
+
+summary(SpawnRunSimFullCoda)
+summary(SpawnRunTempQSimCoda)
+
+```
+
+```{r}
+##calculate DIC scores for both models 
+
+FullSimDIC = dic.samples(SpawnRunSimFull, n.iter = 10000)
+PartialSimDIC = dic.samples(SpawnRunTempQSim, n.iter = 10000)
+
+FullSimDIC
+PartialSimDIC
+
+##DIC scores support the full model over the partial model 
+
+```
+
+
+
+
+
+The full code for the Bayesian logistic regression analysis is included below. 
+
+
+```{r}
+##read in and check structure of data 
+setwd("~/Vermont/Classes/Fall 2017/EcologicalModeling/FinalProject")
+
+SpawnRun_UpstreamDF = read.csv(file = "PBio294FinalDF_Izzo.csv", header = TRUE) 
+
+head(SpawnRun_UpstreamDF)
+str(SpawnRun_UpstreamDF)
+
+##make sure datetime column is in POSIXct format
+SpawnRun_UpstreamDF$DTHour = mdy_hm(SpawnRun_UpstreamDF$DTHour)
+
+##calculate days since the start of spring flood (increasing spring discharge)
+springfloodstart = as.Date("2017-03-24")
+SpawnRun_UpstreamDF$DaysSinceSFS = as.numeric(date(SpawnRun_UpstreamDF$DTHour) - springfloodstart)
+
+##z-standardize continuous predictors to compare effect
+SpawnRun_UpstreamDF$DaysSinceSFS_zs = as.numeric(scale(SpawnRun_UpstreamDF$DaysSinceSFS))
+SpawnRun_UpstreamDF$WaterTempC_zs = as.numeric(scale(SpawnRun_UpstreamDF$WaterTempC))
+SpawnRun_UpstreamDF$DischargeCFS_zs = as.numeric(scale(SpawnRun_UpstreamDF$DischargeCFS))
+
+
+##square temperature and discharge paramters for use in quadratic models 
+SpawnRun_UpstreamDF$WaterTempC_zs2 = SpawnRun_UpstreamDF$WaterTempC_zs^2
+SpawnRun_UpstreamDF$DischargeCFS_zs2 = SpawnRun_UpstreamDF$DischargeCFS_zs^2
+
+
+
+head(SpawnRun_UpstreamDF)
+```
+
+
+```{r}
+##specify basic structure for list of models in JAGS 
+
+Linear1PredSpawnRunJAGS <-"
+model {
+  ##likelihood 
+  for (i in 1:N){
+    SturgeonPresent[i] ~ dbinom(theta.hat[i], 1)
+    logit(theta.hat[i]) <- beta0 + beta1 * Pred1[i]
+  }
+  ##priors
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+}
+"
+
+writeLines(Linear1PredSpawnRunJAGS, con='Linear1PredSpawnRunJAGS.txt')
+
+QuadraticSpawnRunJAGS <-"
+model {
+  for (i in 1:N){
+    SturgeonPresent[i] ~ dbinom(theta.hat[i], 1)
+    logit(theta.hat[i]) <- beta0 + beta1 * Pred1[i] + beta2 * Pred1_sq[i]
+  }
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
+}
+"
+
+writeLines(QuadraticSpawnRunJAGS, con='QuadraticSpawnRunJAGS.txt')
+
+QuadraticPlus1SpawnRunJAGS <-"
+model {
+  ##likelihood 
+  for (i in 1:N){
+    SturgeonPresent[i] ~ dbinom(theta.hat[i], 1)
+    logit(theta.hat[i]) <- beta0 + beta1 * Pred1[i] + beta2 * Pred1_sq[i] + beta3 * Pred2[i]
+  }
+  ##priors
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
+  beta3 ~ dnorm(0, 0.001)
+}
+"
+
+writeLines(QuadraticPlus1SpawnRunJAGS, con='QuadraticPlus1SpawnRunJAGS.txt')
+
+
+Quadratic2SpawnRunJAGS <-"
+model {
+  ##likelihood 
+  for (i in 1:N){
+    SturgeonPresent[i] ~ dbinom(theta.hat[i], 1)
+    logit(theta.hat[i]) <- beta0 + beta1 * Pred1[i] + beta2 * Pred1_sq[i] + beta3 * Pred2[i] + beta4 * Pred2_sq[i]
+  }
+  ##priors
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
+  beta3 ~ dnorm(0, 0.001)
+  beta4 ~ dnorm(0, 0.001)
+}
+"
+
+writeLines(Quadratic2SpawnRunJAGS, con='Quadratic2SpawnRunJAGS.txt')
+
+Quadratic2Plus1SpawnRunJAGS <-"
+model {
+  ##likelihood 
+  for (i in 1:N){
+    SturgeonPresent[i] ~ dbinom(theta.hat[i], 1)
+    logit(theta.hat[i]) <- beta0 + beta1 * Pred1[i] + beta2 * Pred1_sq[i] + beta3 * Pred2[i] + beta4 * Pred2_sq[i] + beta5 * Pred3[i]
+  }
+  ##priors
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
+  beta3 ~ dnorm(0, 0.001)
+  beta4 ~ dnorm(0, 0.001)
+  beta5 ~ dnorm(0, 0.001)
+}
+"
+
+writeLines(Quadratic2Plus1SpawnRunJAGS, con='Quadratic2Plus1SpawnRunJAGS.txt')
+
+
+FullModelSpawnRunJAGS <-"
+model {
+  ##likelihood 
+  for (i in 1:N){
+    SturgeonPresent[i] ~ dbinom(theta.hat[i], 1)
+    logit(theta.hat[i]) <- beta0 + beta1 * Pred1[i] + beta2 * Pred1_sq[i] + beta3 * Pred2[i] + beta4 * Pred2_sq[i] + beta5 * Pred3[i] + beta6 * Pred4[i]
+  }
+  ##priors
+  beta0 ~ dnorm(0, 0.001)
+  beta1 ~ dnorm(0, 0.001)
+  beta2 ~ dnorm(0, 0.001)
+  beta3 ~ dnorm(0, 0.001)
+  beta4 ~ dnorm(0, 0.001)
+  beta5 ~ dnorm(0, 0.001)
+  beta6 ~ dnorm(0, 0.001)
+}
+"
+
+writeLines(FullModelSpawnRunJAGS, con='FullModelSpawnRunJAGS.txt')
+
+
+```
+
+
+Note: Models names based on following: Temp = Temperature, Discharge = Discharge, DSF = Days since flood (aka days since the beginning of spring run off), and DN = Day vs Night 
+
+
+```{r}
+##Single predictor models 
+##Numbers correspond to numbers indicated in Table 1 of paper 
+
+#Days since spring flood start, Model 1
+SpawnRunDaysSFL <- jags.model('Linear1PredSpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$DaysSinceSFS_zs,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunDaysSFL, 1000)
+jags.samples(SpawnRunDaysSFL, c('beta0','beta1'), 10000, 1)
+SpawnRunDaysSFLCoda<-coda.samples(SpawnRunDaysSFL, c('beta0','beta1'), 10000, 1)
+
+#Day vs Night, Model 2
+SpawnRunDayNightL <- jags.model('Linear1PredSpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$DayNight,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunDayNightL, 1000)
+jags.samples(SpawnRunDayNightL, c('beta0','beta1'), 10000, 1)
+SpawnRunDayNightLCoda<-coda.samples(SpawnRunDayNightL, c('beta0','beta1'), 10000, 1)
+
+```
+
+
+
+
+```{r}
+##Quadratic single predictor models 
+
+#Temperature, Model 3
+SpawnRunTempQ <- jags.model('QuadraticSpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$WaterTempC_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$WaterTempC_zs2,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunTempQ, 1000)
+jags.samples(SpawnRunTempQ, c('beta0','beta1', 'beta2'), 10000, 1)
+SpawnRunTempQCoda<-coda.samples(SpawnRunTempQ, c('beta0','beta1', 'beta2'), 10000, 1)
+
+#Discharge, Model 4
+SpawnRunDischargeQ <- jags.model('QuadraticSpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$DischargeCFS_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$DischargeCFS_zs2,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunDischargeQ, 1000)
+jags.samples(SpawnRunDischargeQ , c('beta0','beta1', 'beta2'), 10000, 1)
+SpawnRunDischargeQCoda<-coda.samples(SpawnRunDischargeQ, c('beta0','beta1', 'beta2'), 10000, 1)
+
+```
+
+```{r}
+##Quadratic environmental (single) plus one predictor models 
+
+#Temperature plus Days since flood, Model 5
+SpawnRunTempDSFQ <- jags.model('QuadraticPlus1SpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$WaterTempC_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$WaterTempC_zs2,
+                          'Pred2' = SpawnRun_UpstreamDF$DaysSinceSFS_zs,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunTempDSFQ, 1000)
+jags.samples(SpawnRunTempDSFQ, c('beta0','beta1', 'beta2', 'beta3'), 10000, 1)
+SpawnRunTempDSFQCoda<-coda.samples(SpawnRunTempDSFQ, c('beta0','beta1', 'beta2', 'beta3'), 10000, 1)
+
+#Discharge plus Days since flood, Model 6
+SpawnRunDischargeDSFQ <- jags.model('QuadraticPlus1SpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$DischargeCFS_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$DischargeCFS_zs2,
+                          'Pred2' = SpawnRun_UpstreamDF$DaysSinceSFS_zs,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunDischargeDSFQ, 1000)
+jags.samples(SpawnRunDischargeDSFQ , c('beta0','beta1', 'beta2', 'beta3'), 10000, 1)
+SpawnRunDischargeDSFQCoda<-coda.samples(SpawnRunDischargeDSFQ,c('beta0','beta1', 'beta2', 'beta3'), 10000, 1)
+
+#Temperature plus Day vs Night, Model 7
+SpawnRunTempDNQ <- jags.model('QuadraticPlus1SpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$WaterTempC_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$WaterTempC_zs2,
+                          'Pred2' = SpawnRun_UpstreamDF$DayNight,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunTempDNQ, 1000)
+jags.samples(SpawnRunTempDNQ, c('beta0','beta1', 'beta2', 'beta3'), 10000, 1)
+SpawnRunTempDNQCoda<-coda.samples(SpawnRunTempDNQ, c('beta0','beta1', 'beta2', 'beta3'), 10000, 1)
+
+#Discharge plus Day vs Night, Model 8
+SpawnRunDischargeDNQ <- jags.model('QuadraticPlus1SpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$DischargeCFS_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$DischargeCFS_zs2,
+                          'Pred2' = SpawnRun_UpstreamDF$DayNight,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunDischargeDNQ, 1000)
+jags.samples(SpawnRunDischargeDNQ , c('beta0','beta1', 'beta2', 'beta3'), 10000, 1)
+SpawnRunDischargeDNQCoda<-coda.samples(SpawnRunDischargeDNQ, c('beta0','beta1', 'beta2', 'beta3'), 10000, 1)
+
+```
+
+```{r}
+##Quadratic environmental (double) 
+
+#Temperature plus Discharge, Model 9
+SpawnRunTempDischargeQ <- jags.model('Quadratic2SpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$WaterTempC_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$WaterTempC_zs2,
+                          'Pred2' = SpawnRun_UpstreamDF$DischargeCFS_zs,
+                          'Pred2_sq' = SpawnRun_UpstreamDF$DischargeCFS_zs2,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunTempDischargeQ, 1000)
+jags.samples(SpawnRunTempDischargeQ, c('beta0','beta1', 'beta2', 'beta3', 'beta4'), 10000, 1)
+SpawnRunTempDischargeQCoda<-coda.samples(SpawnRunTempDischargeQ, c('beta0','beta1', 'beta2', 'beta3', 'beta4'), 10000, 1)
+
+
+
+```
+
+
+```{r}
+##Quadratic environmental (double) plus one predictor models 
+
+#Temperature, Discharge and Days since flood, Model 10
+SpawnRunTempDischargeDSFQ <- jags.model('Quadratic2Plus1SpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$WaterTempC_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$WaterTempC_zs2,
+                          'Pred2' = SpawnRun_UpstreamDF$DischargeCFS_zs,
+                          'Pred2_sq' = SpawnRun_UpstreamDF$DischargeCFS_zs2,
+                          'Pred3' = SpawnRun_UpstreamDF$DaysSinceSFS_zs,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunTempDischargeDSFQ, 1000)
+jags.samples(SpawnRunTempDischargeDSFQ, c('beta0','beta1', 'beta2', 'beta3', 'beta4', 'beta5'), 10000, 1)
+SpawnRunTempDischargeDSFQCoda<-coda.samples(SpawnRunTempDischargeDSFQ, c('beta0','beta1', 'beta2', 'beta3', 'beta4', 'beta5'), 10000, 1)
+
+
+#Temperature, Discharge and Day vs Night, Model 11
+SpawnRunTempDischargeDNQ <- jags.model('Quadratic2Plus1SpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$WaterTempC_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$WaterTempC_zs2,
+                          'Pred2' = SpawnRun_UpstreamDF$DischargeCFS_zs,
+                          'Pred2_sq' = SpawnRun_UpstreamDF$DischargeCFS_zs2,
+                          'Pred3' = SpawnRun_UpstreamDF$DayNight,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunTempDischargeDNQ, 1000)
+jags.samples(SpawnRunTempDischargeDNQ, c('beta0','beta1', 'beta2', 'beta3', 'beta4', 'beta5'), 10000, 1)
+SpawnRunTempDischargeDNQCoda<-coda.samples(SpawnRunTempDischargeDNQ, c('beta0','beta1', 'beta2', 'beta3', 'beta4', 'beta5'), 10000, 1)
+
+```
+
+```{r}
+##Full model
+
+SpawnRunFull <- jags.model('FullModelSpawnRunJAGS.txt',
+              data = list('SturgeonPresent'= SpawnRun_UpstreamDF$Present,
+                          'Pred1' = SpawnRun_UpstreamDF$WaterTempC_zs,
+                          'Pred1_sq' = SpawnRun_UpstreamDF$WaterTempC_zs2,
+                          'Pred2' = SpawnRun_UpstreamDF$DischargeCFS_zs,
+                          'Pred2_sq' = SpawnRun_UpstreamDF$DischargeCFS_zs2,
+                          'Pred3' = SpawnRun_UpstreamDF$DaysSinceSFS_zs,
+                          'Pred4' = SpawnRun_UpstreamDF$DayNight,
+                          'N' = nrow(SpawnRun_UpstreamDF)),
+                  n.chains = 4, n.adapt = 1000)
+update(SpawnRunFull, 1000)
+jags.samples(SpawnRunFull, c('beta0','beta1', 'beta2', 'beta3', 'beta4', 'beta5', 'beta6'), 10000, 1)
+SpawnRunFullCoda<-coda.samples(SpawnRunFull, c('beta0','beta1', 'beta2', 'beta3', 'beta4', 'beta5', 'beta6'), 10000, 1)
+
+
+```
+
+
+
+```{r}
+##Check each model for convergence 
+
+traceplot(SpawnRunDaysSFLCoda)
+gelman.diag(SpawnRunDaysSFLCoda)
+
+traceplot(SpawnRunDayNightLCoda)
+gelman.diag(SpawnRunDayNightLCoda)
+
+traceplot(SpawnRunTempQCoda)
+gelman.diag(SpawnRunTempQCoda)
+
+traceplot(SpawnRunDischargeQCoda)
+gelman.diag(SpawnRunDischargeQCoda)
+
+traceplot(SpawnRunTempDSFQCoda)
+gelman.diag(SpawnRunTempDSFQCoda)
+
+traceplot(SpawnRunDischargeDSFQCoda)
+gelman.diag(SpawnRunDischargeDSFQCoda)
+
+traceplot(SpawnRunTempDNQCoda)
+gelman.diag(SpawnRunTempDNQCoda)
+
+traceplot(SpawnRunDischargeDNQCoda)
+gelman.diag(SpawnRunDischargeDNQCoda)
+
+traceplot(SpawnRunTempDischargeQCoda)
+gelman.diag(SpawnRunTempDischargeQCoda)
+
+traceplot(SpawnRunTempDischargeDSFQCoda)
+gelman.diag(SpawnRunTempDischargeDSFQCoda)
+
+traceplot(SpawnRunTempDischargeDNQCoda)
+gelman.diag(SpawnRunTempDischargeDNQCoda)
+
+traceplot(SpawnRunFullCoda)
+gelman.diag(SpawnRunFullCoda)
+
+```
+
+
+```{r}
+##Inspect posterior densities to check for problems 
+
+plot(SpawnRunDaysSFLCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunDayNightLCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunTempQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunDischargeQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunTempDSFQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunDischargeDSFQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunTempDNQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunDischargeDNQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunTempDischargeQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunTempDischargeDSFQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunTempDischargeDNQCoda, trace = FALSE, density = TRUE)
+
+plot(SpawnRunFullCoda, trace = FALSE, density = TRUE)
+
+
+```
+
+```{r}
+##compute DIC scores for each model 
+
+SpawnRunDaysSFLDIC = dic.samples(SpawnRunDaysSFL, n.iter = 10000)
+
+SpawnRunDayNightLDIC = dic.samples(SpawnRunDayNightL, n.iter = 10000)
+
+SpawnRunTempQDIC = dic.samples(SpawnRunTempQ, n.iter = 10000)
+
+SpawnRunDischargeQDIC = dic.samples(SpawnRunDischargeQ, n.iter = 10000)
+
+SpawnRunTempDSFQDIC = dic.samples(SpawnRunTempDSFQ, n.iter = 10000)
+
+SpawnRunDischargeDSFQDIC = dic.samples(SpawnRunDischargeDSFQ, n.iter = 10000)
+
+SpawnRunTempDNQDIC = dic.samples(SpawnRunTempDNQ, n.iter = 10000)
+
+SpawnRunDischargeDNQDIC = dic.samples(SpawnRunDischargeDNQ, n.iter = 10000)
+
+SpawnRunTempDischargeQDIC = dic.samples(SpawnRunTempDischargeQ, n.iter = 10000)
+
+SpawnRunTempDischargeDSFQDIC = dic.samples(SpawnRunTempDischargeDSFQ, n.iter = 10000)
+
+SpawnRunTempDischargeDNQDIC = dic.samples(SpawnRunTempDischargeDNQ, n.iter = 10000)
+
+SpawnRunFullDIC = dic.samples(SpawnRunFull, n.iter = 10000)
+
+```
+
+```{r}
+##print all DIC scores 
+
+SpawnRunDaysSFLDIC
+
+SpawnRunDayNightLDIC
+
+SpawnRunTempQDIC
+
+SpawnRunDischargeQDIC
+
+SpawnRunTempDSFQDIC
+
+SpawnRunDischargeDSFQDIC
+
+SpawnRunTempDNQDIC
+
+SpawnRunDischargeDNQDIC
+
+SpawnRunTempDischargeQDIC
+
+SpawnRunTempDischargeDSFQDIC
+
+SpawnRunTempDischargeDNQDIC
+
+SpawnRunFullDIC
+
+```
+
+
+```{r}
+##summary for top 3 models (Model 12, Model 10, and Model 6) 
+
+summary(SpawnRunFullCoda) ##best model 
+summary(SpawnRunTempDischargeDSFQCoda) ##second best model, delta DIC 12.2 
+summary(SpawnRunDischargeDSFQCoda) ##third best model, delta DIC 14.6 
+
+
+```
+
+
+```{r}
+##create plots for top model 
+
+
+##example trace and density plot for discharge parameters 
+
+TopModelExampleCoda<-coda.samples(SpawnRunFull, c('beta3', 'beta4'), 5000, 1)
+plot(TopModelExampleCoda)
+
+
+##plot includes beta estimates and 95% credible intervals 
+caterplot(SpawnRunFullCoda, 
+          parms = c("beta1", "beta2", "beta3", "beta4", "beta5", "beta6"),
+          labels = c("D", "DSSR", "T", "T2", "D2", "N"),
+          quantiles = list(outer=c(0.025,0.975), inner = c(0,0)),
+          style = "gray", col = "navy")
+
+```
+
+
+
+
+
+

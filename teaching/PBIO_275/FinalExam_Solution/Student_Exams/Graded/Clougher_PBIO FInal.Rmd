@@ -1,0 +1,400 @@
+---
+title: "PBIO Final"
+author: "Kacey Clougher"
+date: "12/8/2017"
+output: html_document
+---
+
+
+1. (30 points) An ecologist is interested in the intermediate disturbance hypothesis (IDH) that postulates that the highest species richness should be found at intermediate levels of disturbance. Write a  likelihood function to estimate the parameters for a quadratic regression models given in Beckage and Stout 2000 
+(http://www.uvm.edu/~bbeckage/Manuscripts/BeckageStout.corrected.2000.jvs.pdf), 
+but assuming a Poisson likelihood with a log link function.  Provide your i. *likelihood function and supporting R code for finding the MLE's*, ii. a *plot of the data with the fitted line* and iii. report the *regression parameters (bo, b1, and b2)*, and iv. the value of the *negative log likelihood at the MLEs*.  Note:  You must write your own likelihood function and not use a built in R function or package, e.g, lm, glm, etc.
+
+The data may be read using:
+```{r}
+srDat<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/idh.csv",sep=',',header=TRUE)
+
+
+srDatV<- as.vector(as.matrix(srDat[,1:2]))
+length(srDatV)
+mean(srDat[,2])
+
+```
+
+i. Likelihood function
+```{r}
+#LLpois fxn
+NpoisLogLik <- function(lambda, data) {
+  data = srDat
+  n<- length(data)
+ ll= sum(data)*log(lambda)-n*lambda
+ return(-ll)
+}
+
+##maximizing llhood 
+library(stats4)
+library(bbmle)
+
+
+mle2(minuslogl = NpoisLogLik, start = list(lambda = lambda), data = list(srDat), method = "L-BFGS-B", lower = c(0.1), upper = (Inf))
+
+
+
+
+```
+
+
+
+ii. Plot
+```{r plot}
+
+hist(srDat, main = "Histogram of Species Richness to Fire Frequency", probability = FALSE)
+lines(min(srDat):max(srDat), col = "skyblue1", lwd = 8)
+
+
+```
+
+
+iii. Report regression parameters
+
+```{r}
+pglm<- glm(sr ~ nFires, family = poisson(link = "log"))
+summary(pglm) # Negative estimate?
+
+```
+
+
+iv. The value of the negative log likelihood at the MLEs
+
+```{r}
+library(stats)
+NegLL<- -(log_lik(object = pglm))
+NegLL
+
+
+
+```
+
+
+
+2. (30 points) Repeat exercise 1 except now fitting the model using either Rstan or Rjags.  You must write your own Stan/JAGS model, meaning that you can not use one of the Stan helper libraries such as the brms or rstanarm libraries. 
+
+```{r}
+library(rstan)
+library(ggplot2)
+library(StanHeaders)
+
+
+
+```
+
+
+```{r}
+plm<- glm(formula = sr ~ nFires, family = poisson(link = "log"), data = srDat)
+
+summary(plm)
+
+
+
+```
+
+
+i. Stan/JAGS model code and supporting R code for running the Stan/JAGS model
+```{r}
+library(rstan)
+library(ggplot2)
+library(StanHeaders)
+
+
+b0 = 1
+b1 = 3
+b2 =1.5
+
+str(srDat)
+srDat<- list(sr = sr, nFires = nFires, N = length(nFires))
+
+
+
+fit<- stan(model_code = poisMod, data = srDat, chains = 2, iter = 1000, warmup = 100, thin = 1)
+summary(poisReg, par = c('b0', 'b1', 'b2'))
+```
+
+```{r}
+library(coda)
+posterior<- as.mcmc.list(poisReg)
+plot(post.fit, par= c('b0', 'b1', 'b2'))
+
+
+```
+
+```{r}
+pos.stan<- function(data, niter, warmup, thin, chains){
+poisMod<- "data 
+{
+
+  int<lower=0> N;
+  real<lower=0, upper=1> nFires[N];
+  int<lower=0> sr[N];
+}
+
+ parameters {
+real b0; //defining real parameters
+real b1;
+real b2;
+ }
+
+ transformed parameters  {
+   real lp[N];
+   real <lower=0> mu[N];
+ 
+   for (i in 1:N) {
+     sr[i] = b0 + b1*nFires[i];
+     mu[i] = exp(lp[i]); //mean
+   }
+}
+
+model {
+  sr ~ poisson(mu); 
+    }
+ }
+"
+
+writeLines(poisMod, con = 'poisMod.stan')
+datalist<- list(sr = sr, nFires = nFires, N = length(nFires))
+}
+
+srDat<- list(sr = sr, nFires = nFires, N = length(nFires))
+fit<- stan(model_code = poisMod, data = srDat, chains = 2, iter = 1000, warmup = 100, thin = 1)
+summary(poisReg, par = c('b0', 'b1', 'b2'))
+
+
+```
+
+ii. report the *2.5%, 50%, and 97.5% percentiles for the regression parameters (bo, b1, and b2)*
+```{r}
+print(fit, pars = c("b0", "b1", "b2"))
+
+```
+
+
+iii. *plot the posterior distributions for each of these parameters* 
+```{r}
+library("bayesplot")
+library("Rcpp")
+library("ggplot2")
+library("coda")
+
+srDat<- as.data.frame(srDat)
+fit <- stan_glm(sr ~ nFires, data = srDat)
+posterior<- as.mcmc(fit)
+plot(posterior, par= c('b0', 'b1', 'b2'))
+
+
+```
+
+
+iv. assess the convergence of your chains using the Gelman-Rubin statistic.
+```{r}
+
+library(coda)
+posterior<-as.mcmc.list(posterior)
+gelman.diag(x = fit, confidence = 0.95, transform = FALSE, autoburnin = TRUE, multivariate = TRUE)
+
+
+
+```
+
+
+
+
+
+3. (40 points) An ecologist expects seed predation to be influenced by the presence of openings (gaps) in the forest overstory and seed mass. The effect of seed mass on predation is expected be quadratic:  Small seeds will be less predated because they offer a lower energetic reward while larger seeds will be too difficult to process, so that medium sized seeds will be most predated.  The effect of a gap is additive with lower predation expected in gaps because seed predators avoid areas of open canopy. The ecologist models the data as a hierarchical logistic regression, assuming that the seed masses are known without observation error.  
+
+The model has the form:
+  Seed lost ~ Binomial(theta) # 1 if seed is predated, 0 if seed is left alone
+  Logit(theta) = b0i + b1 x gap 
+  b0i ~ gamma(mu^2/sd^2,mu/sd^2) 
+  mui = b2 + b3 x seed mass i - b4 x (seed mass i)^2 
+  sd^2 ~ gamma(0.001,0.001)
+  b1,b2,b3,b4 ~ normal(0,100)
+
+Fit this model using either Rstan or Rjags.  You must write your own Stan/JAGS model, meaning that you can not use one of the Stan helper libraries such as the brms or rstanarm libraries.
+
+The data can be read using:
+```{r}
+
+seeds<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/seeds.csv",sep=',',header=TRUE)
+```
+
+  Seed lost ~ Binomial(theta) # 1 if seed is predated, 0 if seed is left alone
+  Logit(theta) = b0i + b1 x gap 
+  b0i ~ gamma(mu^2/sd^2,mu/sd^2) 
+  mui = b2 + b3 x seed mass i - b4 x (seed mass i)^2 
+  sd^2 ~ gamma(0.001,0.001)
+  b1,b2,b3,b4 ~ normal(0,100)
+  
+i. Stan/JAGS model code and supporting R code for running the Stan/JAGS model
+```{r}
+
+
+seeds<-read.table("http://www.uvm.edu/~bbeckage/Teaching/PBIO_294/Data/seeds.csv",sep=',',header=TRUE)
+
+#Organize seed data
+str(seeds)
+
+#size
+seedObs<- nrow(seeds)
+
+#seed lost count
+seeds$seedLost<- as.factor(seeds$seedLost)
+lost<-seeds$seedLost
+
+#seed mass mean to true mean
+mass<- seeds$mass
+true.mu<- mean(seeds$mass)
+
+#seed gap present count
+seeds$gap<- as.factor(seeds$gap)
+gaps<-seeds$gap
+
+#name seed obs
+row.names(seeds)
+seed.id<- row.names(seeds)
+
+
+seeDat<- list(lost = lost, mass = mass, gaps = gaps)
+
+library(ggplot2)
+library(rstan)
+
+ml.stan<- function(data, niter, warmup, thin, chains){
+  
+hierarchical1<- "
+data{
+  int<lower=0> N; //number of seeds
+  int<lower=0> y; // seedLost[N]
+  int<lower=1, upper=N> Q[N]; //named seeds
+  int<lower=0> x;// gap[N]
+  vector[N] J; // mass sizes
+
+}
+parameters {
+real mu; // true mean of seeds
+real <lower=0> b1;
+vector[y] b2;
+real <lower=0> b3;
+vector[x] b4;
+}
+transformed parameters{
+vector[N] theta;
+for (i in 1:N) theta[i] = mu + b1 * b2[Q[i]] + b3 * b4[i];
+}
+model{
+lost ~ binomial(theta);
+//logit(theta)= b0[i] + b1 * x;
+b0[i] ~ gamma(mu^2/sd^2/mu/sd^2);
+//mu[i] = b2 + b3 * J[i] - b4 * j[i]^2
+sd^2 ~ gamma(0.001,0.001)
+b1,b2,b3,b4 ~ normal(0,100)
+}
+"
+
+writeLines(hierarchical1, con = "hierarchical1.txt")
+rcodestan <- readChar("hierarchical1.txt", file.info("hierarchical1.txt")$size)
+
+seedlist<- list(N = seedObs, y = lost, x = gaps, J = mass, Q = seed.id)
+outstan<- stan(model_code = rcodestan, data = seedlist, chains = chains, thin = thin, iter = niter, warmup = warmup)
+ return(outstan)
+}
+
+out_stan<- ml.stan(data = seeds, niter = 10000, warmup = 500, thin = 10, 3)
+
+
+
+
+
+```
+
+
+ii. report the 2.5%, 50%, and 97.5% percentiles for the regression parameters (b1, b2, b3, and b4)
+```{r}
+
+print(out_stan, pars = c("b1", "b2", "b3", "b4"))
+
+
+```
+
+
+
+
+iii. plot the posterior distributions for each of these parameters 
+```{r}
+
+library("coda")
+post.fit<- as.mcmc.list(out_stan)
+plot(post.fit, par= c('b1', 'b2', 'b3', 'b4'))
+
+
+```
+
+
+
+iv. assess the convergence of your chains using the Gelman-Rubin statistic.
+```{r}
+
+
+library(coda)
+posterior<-as.mcmc.list(posterior)
+gelman.diag(x = posterior, confidence = 0.90, transform = FALSE, autoburnin = TRUE, multivariate = TRUE)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
