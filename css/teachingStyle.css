@@ -75,11 +75,25 @@ h3 {
 }
 
 h4 {
-font-size:14px;
-font-weight:normal;
-text-align:left;
-margin: 10% 10% 10% 10%  ;
+	font-size: 18px;
+	/*font-weight: bold;*/
+	text-align: center;
+	margin: 0;
+    /*color: #00fae1;*/
+    color:darkturquoise;
 }
+
+h5 {
+    color:navajowhite;
+    font-size: 12px;
+    text-align: center;
+}
+
+#makeTurquoise {
+      font-size: 18px;
+      color: darkturquoise;
+}
+
 
 ul {
     margin-left: 15px;
@@ -96,12 +110,12 @@ ol li{
 }
 
 a:link {
-	color: #00fae1;
+	color: darkturquoise;
     text-decoration: none;
 }
 
 a:visited {
-	color: #f17272;
+	color: paleturquoise;
 }
 
 table {
