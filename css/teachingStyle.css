@@ -112,6 +112,12 @@ ol li{
     font-size: 1.2em;
     line-height: 1.6;
 }
+ol ol li{
+    margin-left:25px;
+    font-size: 1.0em;
+    line-height: 1.6;
+	list-style-type: lower-roman;
+}
 
 a:link {
 	color: darkturquoise;
