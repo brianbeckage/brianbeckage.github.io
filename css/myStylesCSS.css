@@ -90,6 +90,17 @@ body {
     /*border: 3px solid black;*/
 }
 
+.headerMedia {
+    background-color: black;
+    padding: 10%;
+    text-align: center;
+    background-image: url("../img/eagleMountain_Colchester.jpeg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-bottom: 20px solid black;
+    /*border: 3px solid black;*/
+}
+
 .headerPoetry {
   background-color: black;
   padding: 10%;
@@ -177,9 +188,17 @@ h7{
   margin: 0;
 }
 
-h7{
+h8{
   color: lightslategray;
   font-size: 80%;
+  /*font-weight: bold;*/
+  text-align: center;
+  margin: 0;
+}
+
+h9{
+  color: lightgoldenrodyellow;
+  font-size: 100%;
   /*font-weight: bold;*/
   text-align: center;
   margin: 0;
@@ -346,7 +365,7 @@ a:link {
 }
 
 a:visited {
-  /*color: navajowhite;*/
+  color: goldenrod;
   background-color: transparent;
   text-decoration: none;
 }
@@ -428,5 +447,51 @@ th,td {
         /*font-size: 30px;*/
     }
 
+/**************** Media table */
+
+/*table, th, td {*/
+    /*border: 1px solid whitesmoke;*/
+    /*border-top-style: none;*/
+    /*border-right-style: none;*/
+    /*border-left-style: none;*/
+    /*border-bottom-style: none;*/
+    /*border-collapse: collapse;*/
+    /* vertical-align: middle;*/
+/*}*/
+
+.table4 tr:nth-of-type(1n) td {
+    /*border-top: 2px solid white;*/
+    border-top: none;
+}
+
+.table4 tr:nth-child(even) {
+  background-color: #333333;
+}
+
+.table4 tr:hover {background-color: gray;}
+
+.table4 {
+    table-layout: auto;
+    width: 80%;
+    /*border-collapse: collapse;*/
+    /*border: 3px solid white;*/
+    border:none;
+}
+
+.table4 th {
+    color:wheat;
+    vertical-align:middle;
+    text-align:center;
+    /*border:1px solid white; */
+    border:none;
+}
+
+.table4 td {
+    color:wheat;
+    vertical-align:middle;
+    text-align:center;
+    /*border:1px solid white; */
+    border:none;
+}
 
 
