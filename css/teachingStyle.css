@@ -10,6 +10,16 @@
     border-bottom: 0px solid black;
 }
 
+.header_DataModelling {
+  background-color: black;
+  padding: 10%;
+  text-align: center;
+  background-image: url("../img/snowyForest.jpeg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  /*border-top: 50px solid black;*/
+    border-bottom: 0px solid black;
+}
 
 
 *{
@@ -78,6 +88,14 @@ h3 {
     color: whitesmoke;
 }
 
+h3alt {
+	font-size: 20px;
+	/*font-weight: bold;*/
+	text-align: center;
+	margin: 0;
+    color: whitesmoke;
+}
+
 h4 {
 	font-size: 18px;
 	/*font-weight: bold;*/
@@ -129,6 +147,12 @@ a:link {
 a:visited {
 	color: paleturquoise;
 }
+
+
+ul.nobullets {
+  list-style-type: none;
+ }
+
 
 table {
     vertical-align: middle;
@@ -231,7 +255,30 @@ table, th, td {
     text-align:left;
     border:1px solid white; }
 
+.table5 {
+    table-layout: fixed;
+    width: 30%;
+    /*border-collapse: collapse;*/
+    border: 1px solid white;
+}
 
+.table5 th {
+    color:wheat;
+    vertical-align:middle;
+    text-align:center;
+    border:1px solid white; }
+
+.table5 td {
+    color:wheat;
+    vertical-align:middle;
+    text-align:left;
+    border:1px solid white; }
+
+.table5 tr {
+    /*color:wheat;*/
+    /*vertical-align:middle;*/
+    /*text-align:left;*/
+    border:1px solid white; }
 
 
 
