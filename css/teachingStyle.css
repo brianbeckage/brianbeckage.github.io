@@ -14,7 +14,7 @@
   background-color: black;
   padding: 10%;
   text-align: center;
-  background-image: url("../img/snowyForest.jpeg");
+  background-image: url("../img/franconiaNotch_NH_cropped.jpeg");
   background-repeat: no-repeat;
   background-size: cover;
   /*border-top: 50px solid black;*/
@@ -73,6 +73,14 @@ h1 {
     color: navajowhite;
 }
 
+h1_bigger {
+    font-size:32px;
+    font-weight:bold;
+    text-align:center;
+    color: navajowhite;
+    /*color: lightgoldenrodyellow;*/
+}
+
 h2 {
 font-size:21px;
 font-weight:bold;
@@ -94,6 +102,13 @@ h3alt {
 	text-align: center;
 	margin: 0;
     color: whitesmoke;
+}
+h3alt_dark {
+	font-size: 20px;
+	/*font-weight: bold;*/
+	text-align: center;
+	margin: 0;
+    color: midnightblue;
 }
 
 h4 {
