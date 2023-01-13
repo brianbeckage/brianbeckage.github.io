@@ -17,21 +17,16 @@
     <a href="../../index.html"><h3>Home</h3></a>
 </div>
 
-
-<!--  Others' Poetry********************************************************-->
-<!--<h3 class="poetryColor" id="SomePoetry">Some Poetry </h3>-->
-
-
-<!--  MyPoetry's Poetry********************************************************-->
-
-<!--<h3 class="poetryColor" id="MyPoetry">My Poetry</h3>-->
-
-<!--<div class="container">
-    <a href="poetryTable_Others.html"><h7>Other's Poetry</h7></a>
-&lt;!&ndash;    <a href="#SomePoetry"><h7>Back to Top of Page</h7></a>&ndash;&gt;
-</div>-->
-<!--<a href="poetryTable_Others.html"><h3>Other's Poetry</h3></a>
-<br>-->
+ <script type="text/javascript">
+let paramString = window.location.search.split('?')[1];
+let queryString = new URLSearchParams(paramString);
+let nva = parseInt(queryString.get("nva"))
+let now = new Date().getTime()
+if (Number.isNaN(nva) || now > nva) {
+    console.log("not-valid-after invalid, going to redirect to Main page")
+    window.location = "../poetryTable_My.html"
+}
+ </script>
 
 <hr>
 <table>
