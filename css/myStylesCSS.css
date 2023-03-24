@@ -268,12 +268,12 @@ p{font-family: Arial, Helvetica, sans-serif;
 
 /* unvisited link */
 .citations a:link {
-  color: lightslategrey;
+  color: darkslategray;
 }
 
 /* visited link */
 .citations a:visited {
-  color: darkgoldenrod;
+  color: lightslategray;
 }
 
 /* mouse over link */
