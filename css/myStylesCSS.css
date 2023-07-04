@@ -13,21 +13,6 @@ body {
 
 /* Organizing Images*/
 
-/*.row {*/
-/*  display:  flex;*/
-/*  flex-wrap: wrap;*/
-/*  padding: 0 1px;*/
-/*}*/
-/*!* Create two equal columns that sits next to each other *!*/
-/*.column {*/
-/*  flex: 50%;*/
-/*  padding: 0 4px;*/
-/*}*/
-/*.column img {*/
-/*  margin-top: 8px;*/
-/*  vertical-align: middle;*/
-/*}*/
-
 
 .myImg {
   display: block;
@@ -68,6 +53,24 @@ body {
   /*border-top: 50px solid black;*/
     border-bottom: 0px solid black;
 }
+
+.headerMain_Flipped {
+  background-color: black;
+  padding: 14%;
+    margin-top: 0%;
+  text-align: center;
+      background-image: url("../img/Alaska_Chena.JPG");
+  /*background-image: linear-gradient(to b, rgba(0,0,0,0.0), rgba(0,0,0,0.4), url("../img/Alaska_Chena.JPG"));*/
+  background-repeat: no-repeat;
+  background-size: cover;
+  /*border-top: 50px solid black;*/
+    border-bottom: 0px solid black;
+    transform: scaleY(-1);
+            /*-webkit-transform: scaleY(-1);*/
+}
+
+/*  background-image: linear-gradient(to top, rgba(255,153,153,0) 10%,*/
+/*rgba(255,153,153,0) 25%,rgba(255,153,153,1) 0%), url("../img/Alaska_Chena.JPG");*/
 
 .headerModel {
   background-color: black;
