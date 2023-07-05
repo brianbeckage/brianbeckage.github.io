@@ -56,7 +56,7 @@ body {
 
 .headerMain_Flipped {
   background-color: black;
-  padding: 14%;
+  padding: 10%;
     margin-top: 0%;
   text-align: center;
       background-image: url("../img/Alaska_Chena.JPG");
@@ -65,8 +65,11 @@ body {
   background-size: cover;
   /*border-top: 50px solid black;*/
     border-bottom: 0px solid black;
-    transform: scaleY(-1);
+    transform-origin: bottom;
+transform: scaleY(-2.5) translateY(40%);
             /*-webkit-transform: scaleY(-1);*/
+
+
 }
 
 /*  background-image: linear-gradient(to top, rgba(255,153,153,0) 10%,*/
