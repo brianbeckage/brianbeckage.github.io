@@ -63,13 +63,12 @@ body {
   /*background-image: linear-gradient(to b, rgba(0,0,0,0.0), rgba(0,0,0,0.4), url("../img/Alaska_Chena.JPG"));*/
   background-repeat: no-repeat;
   background-size: cover;
+    opacity: 0.7;
   /*border-top: 50px solid black;*/
     border-bottom: 0px solid black;
     transform-origin: bottom;
-transform: scaleY(-2.5) translateY(40%);
+transform: scaleY(-2) translateY(50%);
             /*-webkit-transform: scaleY(-1);*/
-
-
 }
 
 /*  background-image: linear-gradient(to top, rgba(255,153,153,0) 10%,*/
