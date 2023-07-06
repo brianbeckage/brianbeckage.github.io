@@ -333,7 +333,7 @@ p{font-family: Arial, Helvetica, sans-serif;
 }
 
 .active,.navbar ul li:hover {
-    background: lightgray;
+    /*background: lightgray;*/
     background: hsla(176, 9%, 75%, 0.48);
     display: block;
     /*opacity: 0.5;*/
@@ -346,12 +346,12 @@ p{font-family: Arial, Helvetica, sans-serif;
 }
 
 .navbar ul li:hover .subMenu{
-    display: block;
-    position: absolute;
+    display: inline-flex;
     background: darkslategrey;
     margin-top: 15px;
-    margin-left: -15px;
+    margin-left: 0px;
     /*margin-right: 10px;*/
+    position: relative;
 }
 
 .navbar ul li:hover .subMenu ul{
