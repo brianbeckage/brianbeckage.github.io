@@ -1,0 +1,243 @@
+---
+title: "Poisson Regression"
+output: html_notebook
+---
+
+
+Let's generate some Poisson data. I generate two data sets. yNL~this data set
+will does not have a Link function.  This is to illustrate what happens if we
+try to recapture this data without using a link function. yL~this data set does 
+use a Link function.
+
+
+```{r}
+nReps<-10
+x<-seq(from=0,to=100,by=1)
+x<-rep(x,nReps)
+
+b0<-1.0; b1<-0.2
+myLM1<-b0+b1*x
+yNL<-rpois(n=length(myLM),lambda=myLM) # No link function
+
+b0<-1.0; b1<-0.02
+myLM2<-b0+b1*x
+myLambda<-exp(myLM2)
+yL<-rpois(n=length(myLambda),lambda=myLambda) # Link function
+myData<-data.frame(x,yL,yNL)
+
+rm(x,y)
+plot(myData$x,myData$yL)
+plot(myData$x,myData$yNL)
+
+```
+
+
+First, let's create a likelihood function that will be used for recapturing
+the simulation parameters. Note that there is parameter called 'ifLink'.  If its
+TRUE then it will recapture the parameters for the data generated using the Link
+function and if FALSE then it will recapture the parameters for the data generated 
+without the Link function.
+
+```{r}
+nlikPoisReg<-function(pars,data,ifLink=TRUE){
+  
+    a<-pars[1]      #intercept
+    b<-pars[2]      #slope
+    x<-data$x
+    if(ifLink==TRUE){
+      myLambda<-exp(a + b*x) # using log link
+      y<-data$yL
+    } else {
+      myLambda<-a + b*x  # no link function
+      y<-data$yNL
+    }
+    
+    nlogLikelihood<- -sum(dpois(x=y,lambda = myLambda, log=TRUE))
+    return(nlogLikelihood)
+}
+```
+
+Trying to capture the parameters when ifLink = TRUE
+
+```{r}
+parVec<-c(0.1,0.1) # Initial parameter values 
+outLogReg<-optim(par=parVec,fn=nlikPoisReg,method="L-BFGS-B",lower=-Inf,upper=Inf,data=myData,ifLink=TRUE)
+outLogReg$par
+```
+
+Trying to capture the parameters when ifLink = FALSE
+
+```{r}
+parVec<-c(0.1,0.1) # Initial parameter values 
+outLogReg<-optim(par=parVec,fn=nlikPoisReg,method="L-BFGS-B",lower=-Inf,upper=Inf,data=myData,ifLink=FALSE)
+outLogReg$par
+```
+
+
+Now, trying to fit these models using ULAM from the Rethinking package. First loading
+rethinking. 
+
+```{r}
+library(rethinking)
+```
+
+
+Writing our first ULAM function.  This function uses the yNL data so it is trying to 
+recapture the parameters using data generated without using the Link function.
+
+```{r}
+bayes_PoissonRegNoLink <- ulam(
+alist(
+yNL ~ dpois( lambda = myLambda ) ,
+myLambda <- b0 + b1 * x ,
+b0 ~ dnorm( 0 , 5 ) ,
+b1 ~ dnorm( 0 , 5 ) 
+
+) , data = myData, chains = 1, log_lik = FALSE)
+```
+
+Examining the fit:
+
+
+```{r}
+precis(bayes_PoissonRegNoLink)
+```
+
+
+
+
+Writing our second ULAM function.  This function uses the yL data so it is trying to 
+recapture the parameters using data generated with the Link function.
+
+```{r}
+bayes_PoissonRegLink <- ulam(
+alist(
+yL ~ dpois( lambda = myLambda ) ,
+log(myLambda) <- b0 + b1 * x ,
+b0 ~ dnorm( 0 , 5 ) ,
+b1 ~ dnorm( 0 , 5 ) 
+
+) , data = myData, chains = 4,iter=10000, log_lik = TRUE)
+```
+
+
+```{r}
+precis(bayes_PoissonRegLink)
+```
+
+We can take draws from the posterior distribution using the extract.samples 
+function. 
+
+```{r}
+mySamples<-extract.samples(bayes_PoissonRegLink,n=1000)
+mySamples
+```
+
+Now lets make some posterior predictions. We have to supply data for where
+we want the predictions.This is specified in the 'data=' code below.
+
+The link function returns the draws for the posterior Lambda at each level
+of x, whereas the sim returns draws of actual data Y or counts from each
+level of x.
+
+```{r}
+myPredictLambda<-link(fit=bayes_PoissonRegLink,data=list(x=c(10,20,30)),
+                   n=1000)
+head(myPredictLambda)
+
+myPredictObs<-sim(fit=bayes_PoissonRegLink,data=list(x=c(10,20,30)),
+                   n=1000)
+head(myPredictObs)
+
+```
+
+
+Finally, making some traceplots to examine the mcmc samples. You can either
+use the functions built into rethinking or try using some of the other R
+libraries for examining mcmc fits.  This may require some conversions of the
+ulam output to be compatible with the other libraries. 
+
+```{r}
+traceplot_ulam(bayes_PoissonRegLink)
+```
+
+
+converting samples for use with coda library.
+```{r}
+library(coda)
+mySamples<-extract.samples(bayes_PoissonRegLink,n=1000)
+mySamples<-as.mcmc(cbind(mySamples$b0,mySamples$b1))
+traceplot(mySamples)
+
+
+
+```
+
+
+Here is another MCMC library that could be useful: tidybayes.
+I don't demonstrate it here but want folks to be aware of it. For tidybayes,
+you need to add a rethinking extension. See this link: https://mjskay.github.io/tidybayes.rethinking/
+
+MCMCvis is another library that could probably be made to work with rethinking.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Scratch code below.........this is code that I often find useful but is not central to what is done above
+
+Here is some code to detach all libraries...
+```{r}
+invisible(lapply(paste0('package:', names(sessionInfo()$otherPkgs)), detach, character.only=TRUE, unload=TRUE))
+```
+
+```{r}
+library(pryr)
+```
+
+```{r}
+
+```{r}
+S4toList <- function(obj) {
+   sn <- slotNames(obj)
+   structure(lapply(sn, slot, object = obj), names = sn)
+}
+S4toList(bayes_PoissonRegLink)
+```
+
+```
+
+
+
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

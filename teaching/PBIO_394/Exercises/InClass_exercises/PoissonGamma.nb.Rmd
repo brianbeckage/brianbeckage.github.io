@@ -1,0 +1,141 @@
+---
+title: "Gamma Poisson"
+output: html_notebook
+---
+
+Negative-binomial or gamma-Poisson. A NEGATIVE-BINOMIAL model, more usefully called a GAMMA-POISSON model, assumes that each Poisson count observation has its own rate.
+
+See this article about various parameterizations for use in regression moodeling:
+https://timothy-barry.github.io/posts/2020-06-16-gamma-poisson-nb/
+
+
+```{r}
+knitr::include_graphics("/Users/brianbeckage/brianbeckage.github.io/teaching/PBIO_394/Media/nb_overdispersal.png")
+```
+Comparing mean and variance of NB and Poisson:  mean and variance of Poisson
+are equal.  Note that the rethinking package has a distribution called
+rgampois which is also known as a negative binomial distribution.
+
+```{r}
+
+yPoisson = rpois(n=1000, lambda=10)
+mean(yPoisson)
+var(yPoisson)
+
+# This should converge to a Poisson bc scale is very small
+yNB_asPoisson<-rgampois(n=1000, mu=10,scale=0.000010)
+mean(yNB_asPoisson)
+var(yNB_asPoisson)
+
+# This should be overdispersed bc scale is large
+yNB_overdispersed<-rgampois(n=1000, mu=10,scale=10)
+mean(yNB_overdispersed)
+var(yNB_overdispersed)
+
+
+```
+
+Generating overdispersed data using rgampois
+
+```{r}
+nReps<-10
+x<-seq(from=0,to=100,by=1)
+x<-rep(x,nReps)
+
+b0<-1.0; b1<-0.02
+myScale<-5
+myMu<-exp(b0+b1*x)
+y<-rgampois(n=length(myMu), mu=myMu,scale=myScale)
+myData<-data.frame(x,y)
+
+plot(myData$x,myData$y)
+```
+
+Generating data using rpois so not overdispersed...
+```{r}
+nReps<-10
+x<-seq(from=0,to=100,by=1)
+x<-rep(x,nReps)
+
+b0<-1.0; b1<-0.02
+
+myMu<-exp(b0+b1*x)
+y<-rpois(n=length(myMu), lambda=myMu)
+myDataP<-data.frame(x,y)
+
+plot(myDataP$x,myDataP$y)
+```
+
+
+
+```{r}
+myFit_nb <- ulam(
+alist(
+y ~ dgampois( lambda , exp(log_phi) ),
+log(lambda) <- a + b*x,
+a ~ dnorm(0,5),
+b ~ dnorm(0,5),
+log_phi ~ dnorm(0,5) #dcauchy(0,2) #dunif(1,20) #dexp(5)
+), data=myData , chains=1 , iter=1000, log_lik=FALSE )
+```
+
+```{r}
+precis(myFit_nb)
+```
+
+
+```{r}
+myFit_p <- ulam(
+alist(
+y ~ dpois( lambda),
+log(lambda) <- a + b*x,
+a ~ dnorm(0,5),
+b ~ dnorm(0,5)
+), data=myData , chains=1 , iter=10000, log_lik=FALSE )
+```
+
+```{r}
+precis(myFit_p)
+```
+
+```{r}
+plot(myData$x,myData$y)
+```
+
+```{r}
+plot(myDataP$x,myDataP$y)
+```
+
+
+SCRATCH #################################################################
+
+let p= mu / mu + theta
+p * mu + p* theta = mu
+p * mu - mu = -p * theta
+mu * (p-1) = -p * theta
+mu = -p * theta / (p-1
+mu = p * theta / (1 - p)
+
+mu<-exp(b0+b1*x)
+theta = n - x
+n = theta + x
+p<-mu / mu + theta
+
+
+
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

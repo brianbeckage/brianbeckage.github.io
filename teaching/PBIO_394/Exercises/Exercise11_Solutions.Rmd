@@ -1,0 +1,135 @@
+---
+title: "Exercise 11 Solutions"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+11E1.  If an event has probability 0.35, what are the log-odds of this event?
+
+```{r}
+log(0.35/(1-0.35))
+```
+
+11E2.  If an event has log-odds 3.2, what is the probability of this event?
+
+log(p/1-p)=3.2
+p/(1-p)=exp(3.2)
+p=exp(3.2)-p*exp(3.2)
+p+p*exp(3.2)=exp(3.2)
+p(1+exp(3.2))=exp(3.2)
+p=exp(3.2)/(1+exp(3.2))
+
+```{r}
+exp(3.2)/(1+exp(3.2))
+library(rethinking)
+inv_logit(3.2) # equivalent function 
+```
+
+11E3.  Suppose that a coefficient in a logistic regression has value 1.7. What does this imply about the proportional change in odds of the outcome?
+
+```{r}
+exp(1.7)
+```
+
+This means that each unit change in the predictor variable multiplies the odds of the event by 5.5. To demystify this relationship a little, if the linear model L is the log-odds of the event, then the odds of the event are just exp(L). Now we want to compare the odds before and after increasing a predictor by one unit. We want to know how much the odds increase, as a result of the unit increase
+in the predictor. We can use our dear friend algebra to solve this problem: exp(α + βx)Z = exp(α + β(x + 1))
+
+The left side is the odds of the event, before increasing x. The Z represents the proportional change in odds that we’re going to solve for. It’s unknown value will make the left side equal to the right side. The right side is the odds of the event, after increasing x by 1 unit. So we just solve for Z now. The answer is Z = exp(β). And that’s where the formula comes from.
+
+
+
+11M3.  Explain why the logit link is appropriate for a binomial generalized linear model.
+
+It is conventional to use a logit link for a binomial GLM because we need to map the con- tinuous linear model value to a probability parameter that is bounded between zero and one. The inverse-logit function, often known as the logistic, is one way to do this.
+There are deeper reasons for using the logistic. It arises naturally when working with multinomial probability densities. There was a hint of this in one of the Overthinking boxes in Chapter 9, in which you saw how to derive when the binomial distribution has maximum entropy.
+
+
+11H3.  The data contained in data(salamanders) are counts of salamanders (Plethodon elongatus) from 47 different 49-m2 plots in northern California.181 The column SALAMAN is the count in each plot, and the columns PCTCOVER and FORESTAGE are percent of ground cover and age of trees in the plot, respectively. You will model SALAMAN as a Poisson variable.
+
+(a)  Model the relationship between density and percent cover, using a log-link (same as the example in the book and lecture). Use weakly informative priors of your choosing. Check the quadratic approximation again, by comparing quap to ulam. Then plot the expected counts and their 89% interval against percent cover. In which ways does the model do a good job? A bad job?
+
+Loading and standardizing the predictors
+```{r}
+data(salamanders)
+d <- salamanders
+d$C <- standardize(d$PCTCOVER)
+d$A <- standardize(d$FORESTAGE)
+head(d)
+```
+
+```{r}
+
+f <- alist(
+    SALAMAN ~ dpois( lambda ),
+    log(lambda) <- a + bC*C,
+    a ~ dnorm(0,1),
+    bC ~ dnorm(0,0.5) )
+m1 <- ulam( f , data=d , chains=4 )
+precis(m1)
+
+
+```
+
+```{r}
+plot( d$C , d$SALAMAN , col=rangi2 , lwd=2 ,
+    xlab="cover (standardized)" , ylab="salamanders observed" )
+C_seq <- seq( from=-2 , to=2 , length.out=30 )
+l <- link( m1 , data=list(C=C_seq) )
+lines( C_seq , colMeans( l ) )
+shade( apply( l , 2 , PI ) , C_seq )
+```
+
+This does seem like a case in which the variance is much greater than the mean, i.e. over-dispersion at the very high end of forest cover.  This is a case where a negative binomial model might be appropriate.
+
+
+Using raw, unstandardized variables
+
+```{r}
+fraw <- alist(
+    SALAMAN ~ dpois( lambda ),
+    log(lambda) <- a + bC*PCTCOVER,
+    a ~ dnorm(0,1),
+    bC ~ dnorm(0,0.5) )
+m2 <- ulam( fraw , data=d , chains=4 )
+precis(m2)
+
+```
+
+
+
+(b)  Can you improve the model by using the other predictor, FORESTAGE? Try any models you think useful. Can you explain why FORESTAGE helps or does not help with prediction?
+
+
+```{r}
+f2 <- alist(
+    SALAMAN ~ dpois( lambda ),
+    log(lambda) <- a + bC*C + bA*A,
+    a ~ dnorm(0,1),
+    c(bC,bA) ~ dnorm(0,0.5) )
+m2 <- ulam( f2 , data=d , chains=4 )
+precis(m2)
+```
+
+Notice that the estimate for bA is now nearly zero, with a small interval around it. There isn’t much association between forest age and salamander density, while also conditioning on percent cover.
+
+Why doesn’t forest age help much? It does improve predictions, in the absence of percent cover—check. If all we knew was forest age, it would be a good predictor. But compared to percent cover, forest age doesn’t add much.
+
+
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

@@ -1,0 +1,76 @@
+---
+title: "ChangePoint Model"
+output: html_notebook
+---
+
+
+```{r}
+#change-point regression
+x<-seq(from=0, to=100, len=100)
+yMean<-ifelse(x<50, 1+2*x, 1+2*50+20*(x-50))
+y<-sapply(yMean, rnorm, n=1, sd=4)
+plot(x,y)
+N<-length(x)
+```
+
+```{r}
+myFit_changePoint <- ulam(
+alist(
+  
+y[i] ~ dnorm(y.hat[i], sigma)
+
+changePoint ~ dnorm(0, 10)
+a ~ dnorm(0, 10)
+b1 ~ dnorm(0, 10)
+b2 ~ dnorm(0, 10)
+sigma ~ dunif(0, 100)
+
+
+), data=myData , chains=1 , iter=1000, log_lik=FALSE )
+```
+
+
+```{r}
+
+
+modelString<-
+    "model{
+for (i in 1:N){
+y[i] ~ dnorm(y.hat[i], tau)
+y.hat[i]<- ifelse(i<changePoint, a + b1*x[i], a + b1*changePoint + b2*(x[i]-changePoint))
+}
+changePoint ~ dnorm(0, .0001)
+a ~ dnorm(0, .0001)
+b1 ~ dnorm(0, .0001)
+b2 ~ dnorm(0, .0001)
+tau <- pow(sigma, -2)
+sigma ~ dunif(0, 100)
+}
+"
+writeLines(modelString, con="TEMPmodel.txt")
+
+dataList<-list(x=x, y=y, N=N)
+jags<-jags.model("TEMPmodel.txt",
+                 data = dataList,
+                 n.chains = 4, 
+                 n.adapt = 200)
+codaSamples<-coda.samples(jags, c('a','b1','b2','changePoint','sigma'), 10000, 1)
+summary(codaSamples)
+```
+
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

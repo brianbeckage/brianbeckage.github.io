@@ -1,3 +1,25 @@
+.header_EcologicalModeling {
+  background-color: black;
+  padding: 10%;
+  text-align: center;
+  background-image: url("../img/sandia_NM.jpeg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  /*border-top: 50px solid black;*/
+    border-bottom: 0px solid black;
+}
+
+.headerMain {
+  background-color: black;
+  padding: 10%;
+  text-align: center;
+  background-image: url("../img/Alaska_Chena.JPG");
+  background-repeat: no-repeat;
+  background-size: cover;
+  /*border-top: 50px solid black;*/
+    border-bottom: 0px solid black;
+}
+
 
 .header_GlobalChangeEcology {
   background-color: black;

@@ -1,0 +1,171 @@
+---
+title: "Exercise 13"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+13E3. Rewrite the following model as a multilevel model.
+
+		yi~Normal(mui, sigma)
+		mui=alphagroup[i] + beta*xi
+		alphagroup[i]~Normal(0,5)
+		beta~Normal(0,1)
+    sigma~Exponential(1)
+
+        |
+        V
+
+		yi~Normal(mui, sigma)
+		mui=alphagroup[i] + beta*xi
+		alphagroup[i]~Normal(alphaMean,sigmaH)
+		alphaMean~Normal(0,5)
+		beta~Normal(0,1)
+    sigma~Exponential(1)
+    sigmaH~Exponential(1)
+
+
+
+
+13M1.  Revisit the Reed frog survival data, data(reedfrogs), and add the predation and size treatment variables to the varying intercepts model. Consider models with either main effect alone, both main effects, as well as a model including both and their interaction. Instead of focusing on inferences about these two predictor variables, focus on the inferred variation across tanks. Explain why it changes as it does across models.
+
+ First,let’s setup the datalist: We are creating two categorical variables for pred and size_
+
+```{r}
+library(rethinking)
+data(reedfrogs)
+d <- reedfrogs
+dat <- list(
+    S = d$surv,
+    n = d$density,
+    tank = 1:nrow(d),
+    pred = ifelse( d$pred=="no" , 0L , 1L ),
+    size_ = ifelse( d$size=="small" , 1L , 2L )
+)
+```
+
+Now to define a series of models. The first is just the varying intercepts model from the text:
+
+```{r}
+m1.1 <- ulam(
+    alist(
+        S ~ binomial( n , p ),
+        logit(p) <- a[tank],
+        a[tank] ~ normal( a_bar , sigma ),
+        a_bar ~ normal( 0 , 1.5 ),
+        sigma ~ exponential( 1 )
+    ), data=dat , chains=4 , cores=4 , log_lik=TRUE )
+```
+
+The other models just incorporate the predictors, as ordinary regression terms.
+
+
+First, adding predation
+```{r}
+
+m1.2 <- ulam(
+    alist(
+        S ~ binomial( n , p ),
+        logit(p) <- a[tank] + bp*pred,
+        a[tank] ~ normal( a_bar , sigma ),
+        bp ~ normal( -0.5 , 1 ),
+        a_bar ~ normal( 0 , 1.5 ),
+        sigma ~ exponential( 1 )
+    ), data=dat , chains=4 , cores=4 , log_lik=TRUE )
+```
+
+
+Next, size
+```{r}
+
+m1.3 <- ulam(
+    alist(
+        S ~ binomial( n , p ),
+        logit(p) <- a[tank] + s[size_],
+        a[tank] ~ normal( a_bar , sigma ),
+        s[size_] ~ normal( 0 , 0.5 ),
+        a_bar ~ normal( 0 , 1.5 ),
+        sigma ~ exponential( 1 )
+    ), data=dat , chains=4 , cores=4 , log_lik=TRUE )
+
+```
+
+
+Now, both Predation + size
+```{r}
+m1.4 <- ulam(
+    alist(
+        S ~ binomial( n , p ),
+        logit(p) <- a[tank] + bp*pred + s[size_],
+        a[tank] ~ normal( a_bar , sigma ),
+        bp ~ normal( -0.5 , 1 ),
+        s[size_] ~ normal( 0 , 0.5 ),
+        a_bar ~ normal( 0 , 1.5 ),
+        sigma ~ exponential( 1 )
+    ), data=dat , chains=4 , cores=4 , log_lik=TRUE )
+```
+
+
+Finally, predation + size + their interaction
+
+
+```{r}
+m1.5a <- ulam(
+    alist(
+        S ~ binomial( n , p ),
+        logit(p) <- a_bar + a[tank] + bp[size_]*pred + s[size_],
+        a[tank] ~ normal( a_bar , sigma ),
+        bp[size_] ~ normal( -0.5 , 1 ),
+        s[size_] ~ normal( 0 , 0.5 ),
+        a_bar ~ normal( 0 , 1.5 ),
+        sigma ~ exponential( 1 )
+    ), data=dat , chains=4 , cores=4 , log_lik=TRUE )
+```
+
+Fitting the same model as above using a non-centered parameterization for the tank effect: z[tank]
+z[tank] is given a standard normal distribution (0,1).  This is then scaled by a factor sigma.
+
+```{r}
+
+m1.5 <- ulam(
+    alist(
+        S ~ binomial( n , p ),
+        logit(p) <- a_bar + z[tank]*sigma + bp[size_]*pred + s[size_],
+        z[tank] ~ normal( 0 , 1 ),
+        bp[size_] ~ normal( -0.5 , 1 ),
+        s[size_] ~ normal( 0 , 0.5 ),
+        a_bar ~ normal( 0 , 1.5 ),
+        sigma ~ exponential( 1 )
+    ), data=dat , chains=4 , cores=4 , log_lik=TRUE )
+```
+
+
+```{r}
+plot( coeftab( m1.1 , m1.2 , m1.3 , m1.4 , m1.5 ), pars="sigma" )
+```
+
+
+The two models that omit predation, m1.1 and m1.3, have larger values of sigma. This is because predation explains some of the variation among tanks. So when you add it to the model, the variation in the tank intercepts gets smaller. We’ll examine this in more detail in a the last problem of this chapter.
+The general point here is that the model with only intercepts measures the variation among tanks, but does nothing to explain it. As we add treatment variables, the variation should shrink, even though the total variation in the data of course stays the same.
+
+
+
+
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

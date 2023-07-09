@@ -1,0 +1,128 @@
+---
+title: "Exercise 12 Solutions"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+12E3.  When count data are zero-inflated, using a model that ignores zero-inflation will tend to induce which kind of inferential error?
+
+Ignoring zero-inflation will tend to underestimate the rate of events. Why? Because a count distribution with extra zeros added to it will have a lower mean. So treating such data as single-process count data will result in a lower estimate for the mean rate.
+
+```{r}
+
+```
+
+12E4.  Over-dispersion is common in count data. Give an example of a natural process that might produce over-dispersed counts. Can you also give an example of a process that might produce under-dispersed counts?
+
+
+Over-dispersioncanarisesimplyfromvariationinunderlyingratesacrossunits.Forexample, if we count the number of ice creams sold by various ice cream shops for each day over an entire month, the aggregated counts will likely be over-dispersed. This is because some shops sell more ice cream than others—they do not all have the same average rate of sales across days.
+
+Under-dispersion is considered less often. Under-dispersed count data has less variation than expected. One common process that might produce under-dispersed counts is when sequential ob- servations are directly correlated with one another, autocorrelation. This is the premise of Conway- Maxwell-Poisson (aka COM-Poisson) distributions, which arise from one model of this kind, the state-dependent queuing model, commonplace in the study of servers and production systems of many kinds. Simply stated, when the rate at which jobs are completed depends upon how many jobs are waiting to be completed, then counts may be highly autocorrelated. This reduces variation in the observed counts, resulting in under-dispersion.
+
+```{r}
+
+```
+
+12H1.  In 2014, a paper was published that was entitled “Female hurricanes are deadlier than male hurricanes.”191 As the title suggests, the paper claimed that hurricanes with female names have caused greater loss of life, and the explanation given is that people unconsciously rate female hurricanes as less dangerous and so are less likely to evacuate. Statisticians severely criticized the paper after publication. Here, you’ll explore the complete data used in the paper and consider the hypothesis that hurricanes with female names are deadlier. Load the data with:
+
+R code 12.38
+library(rethinking)
+data(Hurricanes)
+
+Acquaint yourself with the columns by inspecting the help ?Hurricanes. In this problem, you’ll focus on predicting deaths using femininity of each hurricane’s name. Fit and interpret the simplest possible model, a Poisson model of deaths using femininity as a predictor. You can use quap or ulam. Compare the model to an intercept-only Poisson model of deaths. How strong is the association between femininity of name and deaths? Which storms does the model fit (retrodict) well? Which storms does it fit poorly?
+
+Note that femininity in the data set is on a 1-11 scale from totally masculine (1) to totally feminine (11) for name based on the average of 9 scores from 9 raters.
+
+```{r}
+library(rethinking)
+data(Hurricanes)
+d <- Hurricanes
+head(d)
+
+# Standardize feminity to a N(0,1) or standard normal.
+# could also use the scale() function in base R
+d$fmnnty_std <- ( d$femininity - mean(d$femininity) )/sd(d$femininity)
+dat <- list( D=d$deaths , F=d$fmnnty_std )
+head(dat)
+
+```
+
+
+```{r}
+f <- alist(
+        D ~ dpois(lambda),
+        log(lambda) <- a + bF*F,
+        a ~ dnorm(0,10),
+        bF ~ dnorm(0,10) )
+
+m1 <- ulam( f , data=dat , chains=4 , log_lik=TRUE )
+precis( m1 )
+```
+```{r}
+range(dat$F)
+```
+
+
+
+```{r}
+# plot raw data
+plot( dat$F , dat$D , pch=16 , lwd=2 ,
+    col=rangi2 , xlab="femininity (std)" , ylab="deaths" )
+
+# compute model-based trend
+
+# First create a set of values of f to make predictions at
+pred_dat <- list( F=seq(from=-2,to=1.5,length.out=30) )
+
+# simulating the predicted lambdas at these values of f
+# for our fitted model m1.  by default, link simulates
+# a 1000 draws from the posterioir
+lambda <- link( m1 , data=pred_dat )
+
+# next taking the mean and PI which is a percentile interval
+# PI is built in function in rethinking with a default 0.89 probability interval
+lambda.mu <- apply(lambda,2,mean)
+lambda.PI <- apply(lambda,2,PI)
+
+# superimpose trend
+lines( pred_dat$F , lambda.mu )
+shade( lambda.PI , pred_dat$F )
+
+
+# compute sampling distribution
+deaths_sim <- sim(m1,data=pred_dat)
+deaths_sim.PI <- apply(deaths_sim,2,PI)
+# superimpose sampling interval as dashed lines
+lines( pred_dat$F , deaths_sim.PI[1,] , lty=2 )
+lines( pred_dat$F , deaths_sim.PI[2,] , lty=2 )
+```
+We can’t even see the 89% interval of the expected value, because it is so narrow. The sampling dis- tribution isn’t much wider itself. What you can see here is that femininity accounts for very little of the variation in deaths, especially at the high end. There’s a lot of over-dispersion, which is very common in Poisson models. As a consequence, this homogenous Poisson model does a poor job for most of the hurricanes in the sample, as most of them lie outside the prediction envelop (the dashed boundaries).
+
+Any trend also seems to be driven by a small number of extreme storms with feminine names. As you might expect, PSIS does not like this:
+
+```{r}
+stem(PSISk(m1))
+ 
+```
+
+
+
+
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
