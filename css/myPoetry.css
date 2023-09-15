@@ -50,6 +50,14 @@ p{font-family: Arial, Helvetica, sans-serif;
   line-height: 1.6;
 }
 
+p2{font-family: Arial, Helvetica, sans-serif;
+  color:navajowhite;
+  text-align:left;
+  font-size: 70%;
+  margin:10%;
+  line-height: 1.6;
+}
+
 body {
   font-family: Verdana, Geneva, sans-serif;
   margin: 4em;
