@@ -30,6 +30,18 @@ body {
 
 /* Headers Bar ******************************************************/
 
+.headerLab {
+  background-color: black;
+  padding: 10%;
+  text-align: center;
+  /*background-image: url("../img/niquetteBaySP.jpeg");*/
+   background-image: url("../img/lakeChamplain.jpeg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  /*border-top: 50px solid black;*/
+    border-bottom: 0px solid black;
+}
+
 .headerAbout {
   background-color: black;
   padding: 10%;
