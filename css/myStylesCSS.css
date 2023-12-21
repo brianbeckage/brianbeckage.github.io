@@ -375,7 +375,7 @@ p{font-family: Arial, Helvetica, sans-serif;
 
 a:link {
   /*color: white; !* This is color of Publications and Models headers etc. try 'inherit';*!*/
-    color: white;
+    color: slategray;
   background-color: transparent;
   text-decoration: none;
   font-size: 100%
