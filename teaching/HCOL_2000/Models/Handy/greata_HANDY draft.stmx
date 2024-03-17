@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+	<header>
+		<smile version="1.0" namespace="std, isee"/>
+		<name>greata_HANDY draft</name>
+		<uuid>b903950b-a708-4c39-8758-5dfec77de496</uuid>
+		<vendor>isee systems, inc.</vendor>
+		<product version="3.4.1" isee:build_number="3048" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+	</header>
+	<sim_specs isee:sim_duration="1.5" isee:run_prefix="Run" isee:simulation_delay="0.0015" isee:restore_on_start="false" method="Euler" time_units="Years" isee:instantaneous_flows="false" isee:ignore_module_errors="false" isee:strict_units="true" isee:loop_scores="false" isee:loop_exhaustive_allowed="1000">
+		<start>0</start>
+		<stop>1000</stop>
+		<dt reciprocal="true">4</dt>
+	</sim_specs>
+	<isee:prefs saved_runs="5" keep="false" show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="false" layer="model" isee:design="Deluxe Prev-Next Blue Green Pastel" isee:design_custom="false" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rerun_on_structure_change="false" rifp="true"/>
+	<isee:multiplayer_settings include_chat="true" allow_observers="false" advance_time_increment="1" max_advance_time_in_ms="0" model_stops_when_players_drop="false" observer_start_page="home_page" enabled="false"/>
+	<isee:time_formats default_format="Builtin">
+		<isee:time_format name="Builtin" type="adaptive"/>
+	</isee:time_formats>
+	<default_format/>
+	<model_units>
+		<unit name="Dimensionless">
+			<eqn>1</eqn>
+			<alias>dmnl</alias>
+			<alias>unitless</alias>
+			<alias>fraction</alias>
+		</unit>
+		<unit name="People">
+			<eqn/>
+			<alias>person</alias>
+			<alias>persons</alias>
+		</unit>
+		<unit name="$">
+			<eqn/>
+			<alias>dollar</alias>
+			<alias>dollars</alias>
+		</unit>
+		<unit name="Years">
+			<eqn/>
+			<alias>yr</alias>
+			<alias>year</alias>
+		</unit>
+	</model_units>
+	<model>
+		<variables>
+			<stock name="Commoners">
+				<eqn>inital_common_pop</eqn>
+				<inflow>common_births</inflow>
+				<outflow>common_deaths</outflow>
+				<non_negative/>
+				<units>People</units>
+			</stock>
+			<stock name="Elites">
+				<eqn>initial_elite_pop</eqn>
+				<inflow>elite_births</inflow>
+				<outflow>elite_deaths</outflow>
+				<non_negative/>
+				<units>People</units>
+			</stock>
+			<stock name="Resources">
+				<eqn>nature&apos;s_capacity</eqn>
+				<inflow>regeneration</inflow>
+				<outflow>depletion</outflow>
+				<non_negative/>
+				<units>eco-dollars</units>
+			</stock>
+			<aux name="common birth rate">
+				<eqn>0.03</eqn>
+				<units>1/Years</units>
+			</aux>
+			<aux name="elite death rate">
+				<eqn>healthy_death_rate+(MAX(0, 1-(SAFEDIV(elite_consumption,  (subsistence_salary*Elites), 0))))*(famine_death_rate-healthy_death_rate)</eqn>
+				<units>1/Years</units>
+			</aux>
+			<aux name="regeneration factor">
+				<eqn>0.01</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<aux name="nature's capacity">
+				<eqn>100</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<flow name="common births">
+				<eqn>Commoners*common_birth_rate</eqn>
+				<non_negative/>
+				<units>People/Years</units>
+			</flow>
+			<flow name="elite births">
+				<eqn>Elites*elite_birth_rate</eqn>
+				<non_negative/>
+				<units>People/Years</units>
+			</flow>
+			<aux name="elite birth rate">
+				<eqn>0.03</eqn>
+				<units>1/Years</units>
+			</aux>
+			<aux name="healthy death rate">
+				<eqn>0.01</eqn>
+				<units>1/Years</units>
+			</aux>
+			<flow name="common deaths">
+				<eqn>Commoners*common_death_rate</eqn>
+				<non_negative/>
+				<units>People/Years</units>
+			</flow>
+			<flow name="elite deaths">
+				<eqn>elite_death_rate*Elites</eqn>
+				<non_negative/>
+				<units>People/Years</units>
+			</flow>
+			<flow name="regeneration">
+				<eqn>(regeneration_factor*Resources)*(nature&apos;s_capacity-Resources)</eqn>
+				<non_negative/>
+				<units>eco-dollars/Years</units>
+			</flow>
+			<flow name="depletion">
+				<eqn>Resources*depletion_per_worker*Commoners</eqn>
+				<non_negative/>
+				<units>eco-dollars/Years</units>
+			</flow>
+			<aux name="depletion per worker">
+				<eqn>(2*N*subsistence_salary)/nature&apos;s_capacity</eqn>
+				<units>eco-dollars/person</units>
+			</aux>
+			<stock name="Wealth">
+				<eqn>initial_wealth</eqn>
+				<inflow>wealth_accumulation</inflow>
+				<outflow>wealth_depletion</outflow>
+				<non_negative/>
+				<units>eco-dollars</units>
+			</stock>
+			<flow name="wealth accumulation">
+				<eqn>depletion_per_worker*Commoners*Resources</eqn>
+				<non_negative/>
+				<units>eco-dollars/Years</units>
+			</flow>
+			<flow name="wealth depletion">
+				<eqn>commoner_consumption-elite_consumption</eqn>
+				<non_negative/>
+				<units>eco-dollars/Years</units>
+			</flow>
+			<aux name="commoner consumption">
+				<eqn>MIN(1, Wealth/wealth_threshold)*Commoners*subsistence_salary</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<aux name="elite consumption">
+				<eqn>MIN(1, Wealth/wealth_threshold)*Elites*K*subsistence_salary</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<aux name="subsistence salary">
+				<eqn>5.0E-4</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<aux name="K">
+				<eqn>1</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<aux name="wealth threshold">
+				<eqn>(minimum_required_consumption_per_capita*Commoners)+(minimum_required_consumption_per_capita*Elites*K)</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<aux name="minimum required consumption per\ncapita">
+				<eqn>0.005</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<aux name="famine death rate">
+				<eqn>0.07</eqn>
+				<units>1/Years</units>
+			</aux>
+			<aux name="common death rate">
+				<eqn>healthy_death_rate + MAX(0,  1-commoner_consumption/(subsistence_salary*Commoners))*(famine_death_rate-healthy_death_rate)</eqn>
+				<units>1/Years</units>
+			</aux>
+			<aux name="inital common pop">
+				<eqn>100</eqn>
+				<units>People</units>
+			</aux>
+			<aux name="initial elite pop">
+				<eqn>0</eqn>
+				<units>People</units>
+			</aux>
+			<aux name="initial wealth">
+				<eqn>0</eqn>
+				<units>eco-dollars</units>
+			</aux>
+			<aux name="N">
+				<eqn>(famine_death_rate-common_birth_rate)/(famine_death_rate-healthy_death_rate)</eqn>
+				<units>Dimensionless</units>
+			</aux>
+			<aux name="Pop carrying capacity">
+				<eqn>(regeneration_factor/depletion_per_worker)*(nature&apos;s_capacity-(N*(subsistence_salary/depletion_per_worker)))</eqn>
+			</aux>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="summed" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#66CC66" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:dual_slider color="#66CC66" background="silver" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="11" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true" corner_radius="1"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="3" isee:page_rows="2" isee:scroll_y="15" zoom="200" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</flow>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="summed" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<stock x="115" y="95" name="Commoners"/>
+				<stock x="487" y="60" name="Elites"/>
+				<stock x="309.75" y="267" name="Resources"/>
+				<aux x="43" y="150" name="common birth rate"/>
+				<aux x="470" y="137" name="elite death rate"/>
+				<aux x="233" y="305" name="regeneration factor"/>
+				<aux x="308" y="305" name="nature's capacity"/>
+				<flow x="46.25" y="95" name="common births">
+					<pts>
+						<pt x="12" y="79"/>
+						<pt x="12" y="95"/>
+						<pt x="92.5" y="95"/>
+					</pts>
+				</flow>
+				<flow x="433.25" y="62" name="elite births">
+					<pts>
+						<pt x="402" y="62"/>
+						<pt x="464.5" y="62"/>
+					</pts>
+				</flow>
+				<connector uid="1" angle="145.176">
+					<from>Commoners</from>
+					<to>common_births</to>
+				</connector>
+				<connector uid="2" angle="109.983">
+					<from>Elites</from>
+					<to>elite_births</to>
+				</connector>
+				<connector uid="3" angle="86.6183">
+					<from>common_birth_rate</from>
+					<to>common_births</to>
+				</connector>
+				<aux x="293.25" y="34" name="elite birth rate"/>
+				<connector uid="5" angle="348.69">
+					<from>elite_birth_rate</from>
+					<to>elite_births</to>
+				</connector>
+				<aux x="332.25" y="93" width="19" height="19" name="healthy death rate"/>
+				<flow x="179.5" y="95" name="common deaths">
+					<pts>
+						<pt x="115" y="112.5"/>
+						<pt x="115" y="95"/>
+						<pt x="268" y="95"/>
+					</pts>
+				</flow>
+				<flow x="576.75" y="64" name="elite deaths">
+					<pts>
+						<pt x="509.5" y="64"/>
+						<pt x="668" y="64"/>
+					</pts>
+				</flow>
+				<connector uid="7" angle="34.3659">
+					<from>elite_death_rate</from>
+					<to>elite_deaths</to>
+				</connector>
+				<connector uid="8" angle="34.7213">
+					<from>Commoners</from>
+					<to>common_deaths</to>
+				</connector>
+				<connector uid="9" angle="36.3045">
+					<from>Elites</from>
+					<to>elite_deaths</to>
+				</connector>
+				<flow x="237.625" y="260" name="regeneration">
+					<pts>
+						<pt x="188" y="260"/>
+						<pt x="287.25" y="260"/>
+					</pts>
+				</flow>
+				<flow label_side="top" x="385.125" y="255" name="depletion">
+					<pts>
+						<pt x="332.25" y="255"/>
+						<pt x="462" y="255"/>
+					</pts>
+				</flow>
+				<connector uid="11" angle="147.404">
+					<from>nature&apos;s_capacity</from>
+					<to>regeneration</to>
+				</connector>
+				<connector uid="12" angle="64.9831">
+					<from>regeneration_factor</from>
+					<to>regeneration</to>
+				</connector>
+				<connector uid="13" angle="152.488">
+					<from>Resources</from>
+					<to>regeneration</to>
+				</connector>
+				<aux x="422" y="308" name="depletion per worker"/>
+				<connector uid="15" angle="359.228">
+					<from>Resources</from>
+					<to>depletion</to>
+				</connector>
+				<connector uid="16" angle="124.828">
+					<from>depletion_per_worker</from>
+					<to>depletion</to>
+				</connector>
+				<stock x="520.5" y="384.5" name="Wealth"/>
+				<flow x="457" y="384.5" name="wealth accumulation">
+					<pts>
+						<pt x="416" y="384.5"/>
+						<pt x="498" y="384.5"/>
+					</pts>
+				</flow>
+				<flow x="609" y="393" name="wealth depletion">
+					<pts>
+						<pt x="543" y="393"/>
+						<pt x="699" y="393"/>
+					</pts>
+				</flow>
+				<connector uid="19" angle="279.462">
+					<from>depletion_per_worker</from>
+					<to>wealth_accumulation</to>
+				</connector>
+				<connector uid="21" angle="308.309">
+					<from>Resources</from>
+					<to>wealth_accumulation</to>
+				</connector>
+				<aux x="104.5" y="216" name="commoner consumption"/>
+				<connector uid="22" angle="265.04">
+					<from>Commoners</from>
+					<to>commoner_consumption</to>
+				</connector>
+				<aux x="539" y="198" name="elite consumption"/>
+				<connector uid="24" angle="287.928">
+					<from>Elites</from>
+					<to>elite_consumption</to>
+				</connector>
+				<aux x="202.75" y="190" name="subsistence salary"/>
+				<connector uid="26" angle="194.822">
+					<from>subsistence_salary</from>
+					<to>commoner_consumption</to>
+				</connector>
+				<aux x="627" y="186" name="K"/>
+				<connector uid="27" angle="187.765">
+					<from>K</from>
+					<to>elite_consumption</to>
+				</connector>
+				<aux x="571" y="277.5" name="wealth threshold"/>
+				<connector uid="33" angle="111.926">
+					<from>wealth_threshold</from>
+					<to>elite_consumption</to>
+				</connector>
+				<aux x="700" y="298.5" name="minimum required consumption per\ncapita"/>
+				<connector uid="37" angle="170.754">
+					<from>minimum_required_consumption_per_capita</from>
+					<to>wealth_threshold</to>
+				</connector>
+				<connector uid="38" angle="225">
+					<from>K</from>
+					<to>wealth_threshold</to>
+				</connector>
+				<aux x="392" y="141" name="famine death rate"/>
+				<aux x="268" y="126" name="common death rate"/>
+				<connector uid="39" angle="197.674">
+					<from>healthy_death_rate</from>
+					<to>common_death_rate</to>
+				</connector>
+				<connector uid="40" angle="210.964">
+					<from>famine_death_rate</from>
+					<to>common_death_rate</to>
+				</connector>
+				<connector uid="41" angle="169.695">
+					<from>common_death_rate</from>
+					<to>common_deaths</to>
+				</connector>
+				<connector uid="42" angle="28.831">
+					<from>commoner_consumption</from>
+					<to>common_death_rate</to>
+				</connector>
+				<connector uid="43" angle="320.906">
+					<from>Commoners</from>
+					<to>common_death_rate</to>
+				</connector>
+				<connector uid="44" angle="44.4459">
+					<from>subsistence_salary</from>
+					<to>common_death_rate</to>
+				</connector>
+				<connector uid="45" angle="29.31">
+					<from>famine_death_rate</from>
+					<to>elite_death_rate</to>
+				</connector>
+				<connector uid="46" angle="14.0362">
+					<from>healthy_death_rate</from>
+					<to>elite_death_rate</to>
+				</connector>
+				<connector uid="47" angle="325.376">
+					<from>Elites</from>
+					<to>elite_death_rate</to>
+				</connector>
+				<connector uid="48" angle="138.521">
+					<from>elite_consumption</from>
+					<to>elite_death_rate</to>
+				</connector>
+				<aux x="170" y="26" name="inital common pop"/>
+				<aux x="638" y="9" name="initial elite pop"/>
+				<aux x="542.75" y="523" name="initial wealth"/>
+				<stacked_container uid="50" x="185" y="590">
+					<graph width="350" height="250" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
+							<entity name="Commoners"/>
+						</plot>
+						<plot color="red" pen_style="dot_dashed" isee:keep_zero_visible="true" pen_width="1" index="1" show_y_axis="true">
+							<entity name="Elites"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<aux x="334.75" y="208" name="N"/>
+				<connector uid="51" angle="358.493">
+					<from>nature&apos;s_capacity</from>
+					<to>depletion_per_worker</to>
+				</connector>
+				<connector uid="52" angle="311.105">
+					<from>N</from>
+					<to>depletion_per_worker</to>
+				</connector>
+				<connector uid="54" angle="229.487">
+					<from>famine_death_rate</from>
+					<to>N</to>
+				</connector>
+				<connector uid="56" angle="266.204">
+					<from>healthy_death_rate</from>
+					<to>N</to>
+				</connector>
+				<stacked_container uid="57" x="542.75" y="590">
+					<graph width="350" height="250" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
+							<entity name="Wealth"/>
+						</plot>
+						<plot color="red" pen_style="dot_dashed" isee:keep_zero_visible="true" pen_width="1" index="1" show_y_axis="true">
+							<entity name="Resources"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<aux x="807" y="111" name="Pop carrying capacity"/>
+				<stacked_container uid="63" x="723" y="466" width="282" height="248">
+					<graph width="282" height="248" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
+							<entity name="common_death_rate"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<connector uid="64" angle="235.008">
+					<from>
+						<alias uid="65"/>
+					</from>
+					<to>Pop_carrying_capacity</to>
+				</connector>
+				<connector uid="66" angle="218.234">
+					<from>
+						<alias uid="67"/>
+					</from>
+					<to>depletion_per_worker</to>
+				</connector>
+				<connector uid="68" angle="19.44">
+					<from>
+						<alias uid="67"/>
+					</from>
+					<to>elite_consumption</to>
+				</connector>
+				<connector uid="69" angle="93.3665">
+					<from>
+						<alias uid="70"/>
+					</from>
+					<to>Pop_carrying_capacity</to>
+				</connector>
+				<connector uid="72" angle="163.009">
+					<from>
+						<alias uid="71"/>
+					</from>
+					<to>wealth_depletion</to>
+				</connector>
+				<connector uid="74" angle="49.2892">
+					<from>
+						<alias uid="75"/>
+					</from>
+					<to>commoner_consumption</to>
+				</connector>
+				<connector uid="77" angle="154.359">
+					<from>
+						<alias uid="78"/>
+					</from>
+					<to>Pop_carrying_capacity</to>
+				</connector>
+				<connector uid="79" angle="160.145">
+					<from>
+						<alias uid="80"/>
+					</from>
+					<to>elite_death_rate</to>
+				</connector>
+				<connector uid="81" angle="197.454">
+					<from>
+						<alias uid="82"/>
+					</from>
+					<to>N</to>
+				</connector>
+				<connector uid="83" angle="64.0935">
+					<from>
+						<alias uid="84"/>
+					</from>
+					<to>wealth_depletion</to>
+				</connector>
+				<connector uid="85" angle="21.3369">
+					<from>
+						<alias uid="86"/>
+					</from>
+					<to>Pop_carrying_capacity</to>
+				</connector>
+				<connector uid="87" angle="317.49">
+					<from>
+						<alias uid="88"/>
+					</from>
+					<to>Pop_carrying_capacity</to>
+				</connector>
+				<connector uid="89" angle="198.825">
+					<from>
+						<alias uid="90"/>
+					</from>
+					<to>wealth_threshold</to>
+				</connector>
+				<connector uid="91" angle="213.69">
+					<from>
+						<alias uid="92"/>
+					</from>
+					<to>wealth_threshold</to>
+				</connector>
+				<connector uid="93" angle="18.3294">
+					<from>
+						<alias uid="94"/>
+					</from>
+					<to>wealth_accumulation</to>
+				</connector>
+				<connector uid="96" angle="93.3665">
+					<from>
+						<alias uid="95"/>
+					</from>
+					<to>commoner_consumption</to>
+				</connector>
+				<connector uid="97" angle="73.4942">
+					<from>
+						<alias uid="94"/>
+					</from>
+					<to>depletion</to>
+				</connector>
+				<connector uid="98" angle="10.4077">
+					<from>
+						<alias uid="99"/>
+					</from>
+					<to>elite_consumption</to>
+				</connector>
+				<stacked_container uid="100" x="807" y="230" width="1140" height="250">
+					<table interval="DT" report_balances="ending" report_flows="summed" width="1140" height="250">
+						<item type="time"/>
+						<item>
+							<format precision="full"/>
+							<entity name="Commoners"/>
+						</item>
+						<item>
+							<entity name="Elites"/>
+						</item>
+						<item>
+							<entity name="Resources"/>
+						</item>
+						<item>
+							<entity name="Wealth"/>
+						</item>
+						<item>
+							<entity name="wealth_accumulation"/>
+						</item>
+						<item>
+							<entity name="wealth_depletion"/>
+						</item>
+						<item>
+							<entity name="depletion_per_worker"/>
+						</item>
+						<item>
+							<entity name="commoner_consumption"/>
+						</item>
+						<item>
+							<entity name="wealth_threshold"/>
+						</item>
+					</table>
+				</stacked_container>
+				<alias font_style="italic" uid="65" x="826" y="62" width="18" height="18">
+					<of>regeneration_factor</of>
+				</alias>
+				<alias font_style="italic" uid="67" x="502.5" y="253.5" width="18" height="18">
+					<of>subsistence_salary</of>
+				</alias>
+				<alias font_style="italic" uid="70" x="811" y="147" width="18" height="18">
+					<of>nature&apos;s_capacity</of>
+				</alias>
+				<alias font_style="italic" uid="71" x="660" y="349" width="18" height="18">
+					<of>commoner_consumption</of>
+				</alias>
+				<alias font_style="italic" uid="75" x="40" y="271.5" width="18" height="18">
+					<of>wealth_threshold</of>
+				</alias>
+				<alias font_style="italic" uid="78" x="881" y="110" width="18" height="18">
+					<of>subsistence_salary</of>
+				</alias>
+				<alias font_style="italic" uid="80" x="572" y="127" width="18" height="18">
+					<of>subsistence_salary</of>
+				</alias>
+				<alias font_style="italic" uid="82" x="383" y="181" width="18" height="18">
+					<of>common_birth_rate</of>
+				</alias>
+				<alias font_style="italic" uid="84" x="575" y="430" width="18" height="18">
+					<of>elite_consumption</of>
+				</alias>
+				<alias font_style="italic" uid="86" x="734" y="127" width="18" height="18">
+					<of>depletion_per_worker</of>
+				</alias>
+				<alias font_style="italic" uid="88" x="755" y="62" width="18" height="18">
+					<of>N</of>
+				</alias>
+				<alias font_style="italic" uid="90" x="618" y="233.5" width="45" height="35">
+					<of>Commoners</of>
+				</alias>
+				<alias font_style="italic" uid="92" x="681.5" y="233.5" width="45" height="35">
+					<of>Elites</of>
+				</alias>
+				<alias font_style="italic" label_side="top" uid="94" x="312.25" y="407.5" width="45" height="35">
+					<of>Commoners</of>
+				</alias>
+				<alias font_style="italic" uid="95" x="96.5" y="271.5" width="45" height="35">
+					<of>Wealth</of>
+				</alias>
+				<alias font_style="italic" uid="99" x="457.5" y="183.5" width="45" height="35">
+					<of>Wealth</of>
+				</alias>
+			</view>
+		</views>
+	</model>
+</xmile>
+

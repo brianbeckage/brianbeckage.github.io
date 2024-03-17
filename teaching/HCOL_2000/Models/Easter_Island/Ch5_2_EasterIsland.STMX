@@ -1,0 +1,1065 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xmile version="1.0" level="3" xmlns="http://www.systemdynamics.org/XMILE" xmlns:isee="http://iseesystems.com/XMILE">
+    <header>
+        <smile version="1.0">
+            <uses_arrays>1</uses_arrays>
+        </smile>
+        <name>Ch5_2_EasterIsland</name>
+        <uuid>bb8e4358-22d5-4afb-9d54-9d16052b842b</uuid>
+        <vendor>isee systems</vendor>
+        <product version="10.0.2" lang="en">iThink</product>
+    </header>
+    <sim_specs time_units="Years">
+        <start>400</start>
+        <stop>2000</stop>
+        <dt>0.25</dt>
+        <method>Euler</method>
+    </sim_specs>
+    <dimensions>
+        <dim name="Dim_Name_1" size="1" />
+    </dimensions>
+    <model_units />
+    <isee:prefs layer="model" grid_width="20" grid_height="50" divide_by_zero_alert="true" link_high_level_map="true" show_module_prefix="true">
+        <isee:window width="760" height="657" />
+        <isee:security />
+        <isee:print_setup width="586" height="767" orientation="portrait" />
+    </isee:prefs>
+    <isee:equation_prefs order_by="sector" />
+    <model>
+        <stock name="Population">
+            <eqn>24 {people}</eqn>
+            <inflow>births</inflow>
+            <outflow>deaths</outflow>
+            <display x="1164" y="104" color="blue" />
+        </stock>
+        <flow name="births">
+            <eqn>Population*birth_rate { people / year }</eqn>
+            <non_negative />
+            <display x="1077" y="105" color="blue">
+                <pts>
+                    <pt x="1013" y="105" />
+                    <pt x="1142" y="105" />
+                </pts>
+            </display>
+        </flow>
+        <flow name="deaths">
+            <eqn>Population*death_rate { people / year }</eqn>
+            <non_negative />
+            <display x="1248" y="103" color="blue">
+                <pts>
+                    <pt x="1186" y="103" />
+                    <pt x="1310" y="103" />
+                </pts>
+            </display>
+        </flow>
+        <stock name="Population_2">
+            <eqn>24 {people}</eqn>
+            <inflow>births_2</inflow>
+            <outflow>deaths_2</outflow>
+            <outflow>pop_removed_by_slave_ship</outflow>
+            <display x="1894" y="156" color="blue">
+                <label_angle>144</label_angle>
+            </display>
+        </stock>
+        <flow name="births_2">
+            <eqn>Population_2*birth_rate_2 { people / year }</eqn>
+            <non_negative />
+            <display x="1807" y="157" color="blue">
+                <pts>
+                    <pt x="1743" y="157" />
+                    <pt x="1872" y="157" />
+                </pts>
+            </display>
+        </flow>
+        <flow name="deaths_2">
+            <eqn>Population_2*death_rate_2 { people / year }</eqn>
+            <non_negative />
+            <display x="1978" y="155" color="blue">
+                <pts>
+                    <pt x="1916" y="155" />
+                    <pt x="2040" y="155" />
+                </pts>
+            </display>
+        </flow>
+        <aux name="birth_rate_2">
+            <eqn>0.072 { 1 / year }</eqn>
+            <display x="1755" y="192" color="blue" />
+        </aux>
+        <aux name="death_rate_2">
+            <eqn>effect_of_tree_supply_on_death_rate_2*normal_death_rate_2 { 1 / year }</eqn>
+            <display x="2047" y="187" color="blue" />
+        </aux>
+        <stock name="Trees_2">
+            <eqn>40000 { trees }</eqn>
+            <outflow>consumption_2</outflow>
+            <display x="1864" y="409" color="blue" />
+        </stock>
+        <flow name="consumption_2">
+            <eqn>Population_2*actual_consumption_per_person_per_year_2 { trees / year }</eqn>
+            <non_negative />
+            <display x="1939" y="412" color="blue">
+                <pts>
+                    <pt x="1886" y="412" />
+                    <pt x="1993" y="412" />
+                </pts>
+            </display>
+        </flow>
+        <aux name="effect_of_tree\nsupply_on\ndeath_rate_2">
+            <eqn>actual_number_of_trees_available_per_person_2/desired_number_of_trees_per_person_2 { no units }</eqn>
+            <gf discrete="false">
+                <xpts>0,0.20000000000000001,0.40000000000000002,0.60000000000000009,0.80000000000000004,1,1.2,1.3999999999999999,1.5999999999999999,1.7999999999999998,1.9999999999999998</xpts>
+                <ypts>1.2,1.1399999999999999,1.0900000000000001,1.05,1.0149999999999999,1,1,1,1,1,1</ypts>
+                <xscale min="0" max="2" />
+                <yscale min="0.9" max="1.4" />
+            </gf>
+            <display x="1984" y="206" color="blue" />
+        </aux>
+        <aux name="normal\ndeath_rate_2">
+            <eqn>67 / 1000 { 1 / year }</eqn>
+            <display x="2079" y="246" color="blue" />
+        </aux>
+        <aux name="actual_number_of\ntrees_available\nper_person_2">
+            <eqn>MIN(available_trees_per_person_2,desired_number_of_trees_per_person_2) { trees / person / year }</eqn>
+            <display x="1916" y="237" color="blue">
+                <label_side>top</label_side>
+                <label_angle>141</label_angle>
+            </display>
+        </aux>
+        <aux name="desired_number_of\ntrees_per_person_2">
+            <eqn>0.5 { trees / person / year }</eqn>
+            <display x="1997" y="273" color="blue">
+                <label_angle>336</label_angle>
+            </display>
+        </aux>
+        <aux name="normal_tree\nconsumption_per_\nperson_per_year_3">
+            <eqn>0.025 {trees / person / year }</eqn>
+            <display x="2814" y="318" color="blue">
+                <label_side>right</label_side>
+                <label_angle>8</label_angle>
+            </display>
+        </aux>
+        <aux name="birth_rate">
+            <eqn>0.072 { 1 / year }</eqn>
+            <display x="1045" y="140" color="blue" />
+        </aux>
+        <aux name="death_rate">
+            <eqn>effect_of_tree_supply_on_death_rate*normal_death_rate { 1 / year }</eqn>
+            <display x="1317" y="135" color="blue" />
+        </aux>
+        <stock name="Trees">
+            <eqn>40000 { trees }</eqn>
+            <outflow>consumption</outflow>
+            <display x="1160" y="425" color="blue" />
+        </stock>
+        <flow name="consumption">
+            <eqn>Population*actual_consumption_per_person_per_year { trees / year }</eqn>
+            <non_negative />
+            <display x="1235" y="428" color="blue">
+                <pts>
+                    <pt x="1182" y="428" />
+                    <pt x="1289" y="428" />
+                </pts>
+            </display>
+        </flow>
+        <aux name="effect_of_tree\nsupply_on\ndeath_rate">
+            <eqn>actual_number_of_trees_available_per_person/desired_number_of_trees_per_person { no units }</eqn>
+            <gf discrete="false">
+                <xpts>0,0.20000000000000001,0.40000000000000002,0.60000000000000009,0.80000000000000004,1,1.2,1.3999999999999999,1.5999999999999999,1.7999999999999998,1.9999999999999998</xpts>
+                <ypts>1.2,1.1399999999999999,1.0900000000000001,1.05,1.0149999999999999,1,1,1,1,1,1</ypts>
+                <xscale min="0" max="2" />
+                <yscale min="0.9" max="1.4" />
+            </gf>
+            <display x="1259" y="174" color="blue" />
+        </aux>
+        <aux name="normal\ndeath_rate">
+            <eqn>67 / 1000 { 1 / year }</eqn>
+            <display x="1349" y="194" color="blue" />
+        </aux>
+        <aux name="actual_number_of\ntrees_available\nper_person">
+            <eqn>MIN(available_trees_per_person,desired_number_of_trees_per_person) { trees / person / year }</eqn>
+            <display x="1181" y="214" color="blue">
+                <label_side>top</label_side>
+                <label_angle>139</label_angle>
+            </display>
+        </aux>
+        <aux name="desired_number_of\ntrees_per_person">
+            <eqn>0.5 { trees / person / year }</eqn>
+            <display x="1284" y="258" color="blue">
+                <label_angle>336</label_angle>
+            </display>
+        </aux>
+        <aux name="normal_tree\nconsumption_per_\nperson_per_year">
+            <eqn>0.025 {trees / person / year }</eqn>
+            <display x="1281" y="342" color="blue">
+                <label_side>right</label_side>
+                <label_angle>340</label_angle>
+            </display>
+        </aux>
+        <aux name="effect_of_tree_supply_\non_tree_consumption\nper_year">
+            <eqn>actual_number_of_trees_available_per_person/desired_number_of_trees_per_person { no units }</eqn>
+            <gf discrete="false">
+                <xpts>0,0.20000000000000001,0.40000000000000002,0.60000000000000009,0.80000000000000004,1,1.2,1.3999999999999999,1.5999999999999999,1.7999999999999998,1.9999999999999998</xpts>
+                <ypts>0,0.20000000000000001,0.29999999999999999,0.40000000000000002,0.5,1,2,3,5,10,20</ypts>
+                <xscale min="0" max="2" />
+                <yscale min="0" max="20" />
+            </gf>
+            <display x="1198" y="279" color="blue">
+                <label_angle>333</label_angle>
+            </display>
+        </aux>
+        <aux name="available_trees\nper_person">
+            <eqn>Trees/Population { trees / person / year }</eqn>
+            <display x="1130" y="239" color="blue">
+                <label_side>left</label_side>
+                <label_angle>188</label_angle>
+            </display>
+        </aux>
+        <aux name="actual_consumption\nper_person_per_year">
+            <eqn>normal_tree_consumption_per__person_per_year*effect_of_tree_supply__on_tree_consumption_per_year {trees/person/year}</eqn>
+            <display x="1228" y="356" color="blue">
+                <label_angle>302</label_angle>
+            </display>
+        </aux>
+        <aux name="effect_of_tree_supply_\non_tree_consumption\nper_year_3">
+            <eqn>actual_number_of_trees_available_per_person_3/desired_number_of_trees_per_person_3 { no units }</eqn>
+            <gf discrete="false">
+                <xpts>0,0.20000000000000001,0.40000000000000002,0.60000000000000009,0.80000000000000004,1,1.2,1.3999999999999999,1.5999999999999999,1.7999999999999998,1.9999999999999998</xpts>
+                <ypts>0,0.20000000000000001,0.29999999999999999,0.40000000000000002,0.5,1,2,3,5,10,20</ypts>
+                <xscale min="0" max="2" />
+                <yscale min="0" max="20" />
+            </gf>
+            <display x="2727" y="287" color="blue">
+                <label_side>left</label_side>
+                <label_angle>225</label_angle>
+            </display>
+        </aux>
+        <aux name="available_trees\nper_person_2">
+            <eqn>Trees_2/Population_2 { trees / person / year }</eqn>
+            <display x="1843" y="254" color="blue">
+                <label_side>left</label_side>
+                <label_angle>168</label_angle>
+            </display>
+        </aux>
+        <flow name="pop_removed_by\nslave_ship">
+            <eqn>PULSE(Population_2-110, 1877, 99999) { people / year }</eqn>
+            <non_negative />
+            <display x="1999" y="93" color="blue">
+                <label_side>top</label_side>
+                <label_angle>95</label_angle>
+                <pts>
+                    <pt x="1895" y="139" />
+                    <pt x="1895" y="93" />
+                    <pt x="2104" y="93" />
+                </pts>
+            </display>
+        </flow>
+        <stock name="Population_3">
+            <eqn>24 {people}</eqn>
+            <inflow>births_3</inflow>
+            <outflow>deaths_3</outflow>
+            <display x="2676" y="125" color="blue" />
+        </stock>
+        <flow name="births_3">
+            <eqn>Population_3*birth_rate_3 { people / year }</eqn>
+            <non_negative />
+            <display x="2589" y="126" color="blue">
+                <pts>
+                    <pt x="2525" y="126" />
+                    <pt x="2654" y="126" />
+                </pts>
+            </display>
+        </flow>
+        <flow name="deaths_3">
+            <eqn>Population_3*death_rate_3 { people / year }</eqn>
+            <non_negative />
+            <display x="2760" y="124" color="blue">
+                <pts>
+                    <pt x="2698" y="124" />
+                    <pt x="2822" y="124" />
+                </pts>
+            </display>
+        </flow>
+        <aux name="birth_rate_3">
+            <eqn>0.072 { 1 / year }</eqn>
+            <display x="2537" y="161" color="blue" />
+        </aux>
+        <aux name="death_rate_3">
+            <eqn>effect_of_tree_supply_on_death_rate_3*normal_death_rate_3 { 1 / year }</eqn>
+            <display x="2829" y="156" color="blue" />
+        </aux>
+        <stock name="Trees_3">
+            <eqn>40000 { trees }</eqn>
+            <inflow>replanting</inflow>
+            <outflow>consumption_3</outflow>
+            <display x="2685" y="392" color="blue" />
+        </stock>
+        <flow name="consumption_3">
+            <eqn>Population_3*actual_consumption_per_person_per_year_3 { trees / year }</eqn>
+            <non_negative />
+            <display x="2760" y="395" color="blue">
+                <pts>
+                    <pt x="2707" y="395" />
+                    <pt x="2814" y="395" />
+                </pts>
+            </display>
+        </flow>
+        <aux name="effect_of_tree\nsupply_on\ndeath_rate_3">
+            <eqn>actual_number_of_trees_available_per_person_3/desired_number_of_trees_per_person_3 { no units }</eqn>
+            <gf discrete="false">
+                <xpts>0,0.20000000000000001,0.40000000000000002,0.60000000000000009,0.80000000000000004,1,1.2,1.3999999999999999,1.5999999999999999,1.7999999999999998,1.9999999999999998</xpts>
+                <ypts>1.2,1.1399999999999999,1.0900000000000001,1.05,1.0149999999999999,1,1,1,1,1,1</ypts>
+                <xscale min="0" max="2" />
+                <yscale min="0.9" max="1.4" />
+            </gf>
+            <display x="2771" y="195" color="blue" />
+        </aux>
+        <aux name="normal\ndeath_rate_3">
+            <eqn>67 / 1000 { 1 / year }</eqn>
+            <display x="2861" y="215" color="blue" />
+        </aux>
+        <aux name="actual_number_of\ntrees_available\nper_person_3">
+            <eqn>MIN(available_trees_per_person_3,desired_number_of_trees_per_person_3) { trees / person / year }</eqn>
+            <display x="2693" y="235" color="blue">
+                <label_side>top</label_side>
+                <label_angle>139</label_angle>
+            </display>
+        </aux>
+        <aux name="desired_number_of\ntrees_per_person_3">
+            <eqn>0.5 { trees / person / year }</eqn>
+            <display x="2796" y="279" color="blue">
+                <label_side>right</label_side>
+            </display>
+        </aux>
+        <aux name="normal_tree\nconsumption_per_\nperson_per_year_4">
+            <eqn>0.025 {trees / person / year }</eqn>
+            <display x="3570" y="302" color="blue">
+                <label_side>right</label_side>
+                <label_angle>340</label_angle>
+            </display>
+        </aux>
+        <aux name="effect_of_tree_supply_\non_tree_consumption\nper_year_4">
+            <eqn>actual_number_of_trees_available_per_person_4/desired_number_of_trees_per_person_4 { no units }</eqn>
+            <gf discrete="false">
+                <xpts>0,0.20000000000000001,0.40000000000000002,0.60000000000000009,0.80000000000000004,1,1.2,1.3999999999999999,1.5999999999999999,1.7999999999999998,1.9999999999999998</xpts>
+                <ypts>0,0.20000000000000001,0.29999999999999999,0.40000000000000002,0.5,1,2,3,5,10,20</ypts>
+                <xscale min="0" max="2" />
+                <yscale min="0" max="20" />
+            </gf>
+            <display x="3483" y="278" color="blue">
+                <label_side>left</label_side>
+                <label_angle>235</label_angle>
+            </display>
+        </aux>
+        <aux name="available_trees\nper_person_3">
+            <eqn>Trees_3/Population_3 { trees / person / year }</eqn>
+            <display x="2614" y="261" color="blue">
+                <label_side>left</label_side>
+                <label_angle>144</label_angle>
+            </display>
+        </aux>
+        <flow name="replanting">
+            <eqn>STEP(50, 1600) { trees / year }</eqn>
+            <non_negative />
+            <display x="2603" y="392" color="blue">
+                <pts>
+                    <pt x="2544" y="392" />
+                    <pt x="2663" y="392" />
+                </pts>
+            </display>
+        </flow>
+        <stock name="Population_4">
+            <eqn>24 {people}</eqn>
+            <inflow>births_4</inflow>
+            <outflow>deaths_4</outflow>
+            <display x="3436" y="102" color="blue" />
+        </stock>
+        <flow name="births_4">
+            <eqn>Population_4*birth_rate_4 { people / year }</eqn>
+            <non_negative />
+            <display x="3349" y="103" color="blue">
+                <pts>
+                    <pt x="3285" y="103" />
+                    <pt x="3414" y="103" />
+                </pts>
+            </display>
+        </flow>
+        <flow name="deaths_4">
+            <eqn>Population_4*death_rate_4 { people / year }</eqn>
+            <non_negative />
+            <display x="3520" y="101" color="blue">
+                <pts>
+                    <pt x="3458" y="101" />
+                    <pt x="3582" y="101" />
+                </pts>
+            </display>
+        </flow>
+        <aux name="birth_rate_4">
+            <eqn>0.072 { 1 / year }</eqn>
+            <display x="3297" y="138" color="blue" />
+        </aux>
+        <aux name="death_rate_4">
+            <eqn>effect_of_tree_supply_on_death_rate_4*normal_death_rate_4 { 1 / year }</eqn>
+            <display x="3589" y="133" color="blue" />
+        </aux>
+        <stock name="Mature_Trees">
+            <eqn>40000 { trees }</eqn>
+            <inflow>maturing</inflow>
+            <outflow>consumption_4</outflow>
+            <display x="3445" y="369" color="blue" />
+        </stock>
+        <flow name="consumption_4">
+            <eqn>Population_4*actual_consumption_per_person_per_year_4 { trees / year }</eqn>
+            <non_negative />
+            <display x="3520" y="372" color="blue">
+                <pts>
+                    <pt x="3467" y="372" />
+                    <pt x="3574" y="372" />
+                </pts>
+            </display>
+        </flow>
+        <aux name="effect_of_tree\nsupply_on\ndeath_rate_4">
+            <eqn>actual_number_of_trees_available_per_person_4/desired_number_of_trees_per_person_4 { no units }</eqn>
+            <gf discrete="false">
+                <xpts>0,0.20000000000000001,0.40000000000000002,0.60000000000000009,0.80000000000000004,1,1.2,1.3999999999999999,1.5999999999999999,1.7999999999999998,1.9999999999999998</xpts>
+                <ypts>1.2,1.1399999999999999,1.0900000000000001,1.05,1.0149999999999999,1,1,1,1,1,1</ypts>
+                <xscale min="0" max="2" />
+                <yscale min="0.9" max="1.4" />
+            </gf>
+            <display x="3531" y="172" color="blue" />
+        </aux>
+        <aux name="normal\ndeath_rate_4">
+            <eqn>67 / 1000 { 1 / year }</eqn>
+            <display x="3621" y="192" color="blue" />
+        </aux>
+        <aux name="actual_number_of\ntrees_available\nper_person_4">
+            <eqn>MIN(available_trees_per_person_4,desired_number_of_trees_per_person_4) { trees / person / year }</eqn>
+            <display x="3453" y="212" color="blue">
+                <label_side>top</label_side>
+                <label_angle>139</label_angle>
+            </display>
+        </aux>
+        <aux name="desired_number_of\ntrees_per_person_4">
+            <eqn>0.5 { trees / person / year }</eqn>
+            <display x="3556" y="256" color="blue">
+                <label_side>right</label_side>
+                <label_angle>16</label_angle>
+            </display>
+        </aux>
+        <aux name="available_trees\nper_person_4">
+            <eqn>Mature_Trees/Population_4 { trees / person / year }</eqn>
+            <display x="3357" y="234" color="blue">
+                <label_side>left</label_side>
+                <label_angle>160</label_angle>
+            </display>
+        </aux>
+        <flow name="maturing">
+            <eqn>Sapplings/time_to__mature { trees / year }</eqn>
+            <non_negative />
+            <display x="3376" y="370" color="blue">
+                <label_angle>297</label_angle>
+                <pts>
+                    <pt x="3330" y="370" />
+                    <pt x="3423" y="370" />
+                </pts>
+            </display>
+        </flow>
+        <stock name="Sapplings">
+            <eqn>0</eqn>
+            <inflow>replanting_2</inflow>
+            <outflow>maturing</outflow>
+            <display x="3308" y="373" color="blue" />
+        </stock>
+        <flow name="replanting_2">
+            <eqn>STEP(50, 1600) { trees / year }</eqn>
+            <non_negative />
+            <display x="3253" y="371" color="blue">
+                <pts>
+                    <pt x="3221" y="371" />
+                    <pt x="3286" y="371" />
+                </pts>
+            </display>
+        </flow>
+        <aux name="time_to_\nmature">
+            <eqn>20 { years }</eqn>
+            <display x="3422" y="420" color="blue" />
+        </aux>
+        <aux name="normal_tree\nconsumption_per_\nperson_per_year_2">
+            <eqn>0.025 {trees / person / year }</eqn>
+            <display x="2020" y="332" color="blue">
+                <label_side>right</label_side>
+                <label_angle>340</label_angle>
+            </display>
+        </aux>
+        <aux name="effect_of_tree_supply_\non_tree_consumption\nper_year_2">
+            <eqn>actual_number_of_trees_available_per_person_2/desired_number_of_trees_per_person_2 { no units }</eqn>
+            <gf discrete="false">
+                <xpts>0,0.20000000000000001,0.40000000000000002,0.60000000000000009,0.80000000000000004,1,1.2,1.3999999999999999,1.5999999999999999,1.7999999999999998,1.9999999999999998</xpts>
+                <ypts>0,0.20000000000000001,0.29999999999999999,0.40000000000000002,0.5,1,2,3,5,10,20</ypts>
+                <xscale min="0" max="2" />
+                <yscale min="0" max="20" />
+            </gf>
+            <display x="1899" y="287" color="blue">
+                <label_angle>203</label_angle>
+            </display>
+        </aux>
+        <aux name="actual_consumption\nper_person_per_year_2">
+            <eqn>normal_tree_consumption_per__person_per_year_2*effect_of_tree_supply__on_tree_consumption_per_year_2 {trees/person/year}</eqn>
+            <display x="1963" y="347" color="blue">
+                <label_angle>302</label_angle>
+            </display>
+        </aux>
+        <aux name="actual_consumption\nper_person_per_year_3">
+            <eqn>normal_tree_consumption_per__person_per_year_3*effect_of_tree_supply__on_tree_consumption_per_year_3 {trees/person/year}</eqn>
+            <display x="2767" y="339" color="blue">
+                <label_angle>302</label_angle>
+            </display>
+        </aux>
+        <aux name="actual_consumption\nper_person_per_year_4">
+            <eqn>normal_tree_consumption_per__person_per_year_4*effect_of_tree_supply__on_tree_consumption_per_year_4 {trees/person/year}</eqn>
+            <display x="3517" y="316" color="blue">
+                <label_angle>302</label_angle>
+            </display>
+        </aux>
+        <display show_pages="false" page_width="586" page_height="767" page_sequence="row" page_rows="7" page_cols="2" isee:show_values_on_hover="true" isee:converter_size="medium" zoom="100" report_every_dt="true" scroll_x="0" scroll_y="0">
+            <connector x="1052" y="134" uid="0" color="#FF007F">
+                <from>birth_rate</from>
+                <to>births</to>
+            </connector>
+            <connector x="1147" y="121" uid="1" color="#FF007F">
+                <from>Population</from>
+                <to>births</to>
+            </connector>
+            <connector x="1762" y="187" uid="2" color="#FF007F">
+                <from>birth_rate_2</from>
+                <to>births_2</to>
+            </connector>
+            <connector x="1871" y="171" uid="3" color="#FF007F">
+                <from>Population_2</from>
+                <to>births_2</to>
+            </connector>
+            <connector x="1916" y="171" uid="4" color="#FF007F">
+                <from>Population_2</from>
+                <to>deaths_2</to>
+            </connector>
+            <connector x="2039" y="183" uid="5" color="#FF007F">
+                <from>death_rate_2</from>
+                <to>deaths_2</to>
+            </connector>
+            <connector x="1993" y="204" uid="6" color="#FF007F">
+                <from>effect_of_tree_supply_on_death_rate_2</from>
+                <to>death_rate_2</to>
+            </connector>
+            <connector x="2084" y="238" uid="7" color="#FF007F">
+                <from>normal_death_rate_2</from>
+                <to>death_rate_2</to>
+            </connector>
+            <connector x="1922" y="230" uid="8" color="#FF007F">
+                <from>actual_number_of_trees_available_per_person_2</from>
+                <to>effect_of_tree_supply_on_death_rate_2</to>
+            </connector>
+            <connector x="2005" y="269" uid="9" color="#FF007F">
+                <from>desired_number_of_trees_per_person_2</from>
+                <to>effect_of_tree_supply_on_death_rate_2</to>
+            </connector>
+            <connector x="1915" y="143" uid="10" color="#FF007F">
+                <from>Population_2</from>
+                <to>consumption_2</to>
+            </connector>
+            <connector x="1913" y="246" uid="11" color="#FF007F">
+                <from>actual_number_of_trees_available_per_person_2</from>
+                <to>effect_of_tree_supply__on_tree_consumption_per_year_2</to>
+            </connector>
+            <connector x="1991" y="279" uid="12" color="#FF007F">
+                <from>desired_number_of_trees_per_person_2</from>
+                <to>effect_of_tree_supply__on_tree_consumption_per_year_2</to>
+            </connector>
+            <connector x="1954" y="349" uid="13" color="#FF007F">
+                <from>actual_consumption_per_person_per_year_2</from>
+                <to>consumption_2</to>
+            </connector>
+            <connector x="1186" y="122" uid="14" color="#FF007F">
+                <from>Population</from>
+                <to>deaths</to>
+            </connector>
+            <connector x="1309" y="131" uid="15" color="#FF007F">
+                <from>death_rate</from>
+                <to>deaths</to>
+            </connector>
+            <connector x="1263" y="166" uid="16" color="#FF007F">
+                <from>effect_of_tree_supply_on_death_rate</from>
+                <to>death_rate</to>
+            </connector>
+            <connector x="1354" y="186" uid="17" color="#FF007F">
+                <from>normal_death_rate</from>
+                <to>death_rate</to>
+            </connector>
+            <connector x="1185" y="206" uid="18" color="#FF007F">
+                <from>actual_number_of_trees_available_per_person</from>
+                <to>effect_of_tree_supply_on_death_rate</to>
+            </connector>
+            <connector x="1289" y="250" uid="19" color="#FF007F">
+                <from>desired_number_of_trees_per_person</from>
+                <to>effect_of_tree_supply_on_death_rate</to>
+            </connector>
+            <connector x="1185" y="93" uid="20" color="#FF007F">
+                <from>Population</from>
+                <to>consumption</to>
+            </connector>
+            <connector x="1191" y="285" uid="21" color="#FF007F">
+                <from>effect_of_tree_supply__on_tree_consumption_per_year</from>
+                <to>actual_consumption_per_person_per_year</to>
+            </connector>
+            <connector x="1272" y="341" uid="22" color="#FF007F">
+                <from>normal_tree_consumption_per__person_per_year</from>
+                <to>actual_consumption_per_person_per_year</to>
+            </connector>
+            <connector x="1176" y="221" uid="23" color="#FF007F">
+                <from>actual_number_of_trees_available_per_person</from>
+                <to>effect_of_tree_supply__on_tree_consumption_per_year</to>
+            </connector>
+            <connector x="1279" y="265" uid="24" color="#FF007F">
+                <from>desired_number_of_trees_per_person</from>
+                <to>effect_of_tree_supply__on_tree_consumption_per_year</to>
+            </connector>
+            <connector x="1147" y="121" uid="25" color="#FF007F">
+                <from>Population</from>
+                <to>available_trees_per_person</to>
+            </connector>
+            <connector x="1137" y="408" uid="26" color="#FF007F">
+                <from>Trees</from>
+                <to>available_trees_per_person</to>
+            </connector>
+            <connector x="1138" y="235" uid="27" color="#FF007F">
+                <from>available_trees_per_person</from>
+                <to>actual_number_of_trees_available_per_person</to>
+            </connector>
+            <connector x="1278" y="253" uid="28" color="#FF007F">
+                <from>desired_number_of_trees_per_person</from>
+                <to>actual_number_of_trees_available_per_person</to>
+            </connector>
+            <connector x="1227" y="365" uid="29" color="#FF007F">
+                <from>actual_consumption_per_person_per_year</from>
+                <to>consumption</to>
+            </connector>
+            <connector x="2722" y="294" uid="30" color="#FF007F">
+                <from>effect_of_tree_supply__on_tree_consumption_per_year_3</from>
+                <to>actual_consumption_per_person_per_year_3</to>
+            </connector>
+            <connector x="1872" y="172" uid="31" color="#FF007F">
+                <from>Population_2</from>
+                <to>available_trees_per_person_2</to>
+            </connector>
+            <connector x="1842" y="395" uid="32" color="#FF007F">
+                <from>Trees_2</from>
+                <to>available_trees_per_person_2</to>
+            </connector>
+            <connector x="1852" y="252" uid="33" color="#FF007F">
+                <from>available_trees_per_person_2</from>
+                <to>actual_number_of_trees_available_per_person_2</to>
+            </connector>
+            <connector x="1988" y="275" uid="34" color="#FF007F">
+                <from>desired_number_of_trees_per_person_2</from>
+                <to>actual_number_of_trees_available_per_person_2</to>
+            </connector>
+            <connector x="1904" y="139" uid="35" color="#FF007F">
+                <from>Population_2</from>
+                <to>pop_removed_by_slave_ship</to>
+            </connector>
+            <connector x="2544" y="156" uid="36" color="#FF007F">
+                <from>birth_rate_3</from>
+                <to>births_3</to>
+            </connector>
+            <connector x="2654" y="139" uid="37" color="#FF007F">
+                <from>Population_3</from>
+                <to>births_3</to>
+            </connector>
+            <connector x="2698" y="138" uid="38" color="#FF007F">
+                <from>Population_3</from>
+                <to>deaths_3</to>
+            </connector>
+            <connector x="2821" y="152" uid="39" color="#FF007F">
+                <from>death_rate_3</from>
+                <to>deaths_3</to>
+            </connector>
+            <connector x="2775" y="187" uid="40" color="#FF007F">
+                <from>effect_of_tree_supply_on_death_rate_3</from>
+                <to>death_rate_3</to>
+            </connector>
+            <connector x="2866" y="207" uid="41" color="#FF007F">
+                <from>normal_death_rate_3</from>
+                <to>death_rate_3</to>
+            </connector>
+            <connector x="2697" y="227" uid="42" color="#FF007F">
+                <from>actual_number_of_trees_available_per_person_3</from>
+                <to>effect_of_tree_supply_on_death_rate_3</to>
+            </connector>
+            <connector x="2800" y="271" uid="43" color="#FF007F">
+                <from>desired_number_of_trees_per_person_3</from>
+                <to>effect_of_tree_supply_on_death_rate_3</to>
+            </connector>
+            <connector x="2697" y="108" uid="44" color="#FF007F">
+                <from>Population_3</from>
+                <to>consumption_3</to>
+            </connector>
+            <connector x="2699" y="242" uid="45" color="#FF007F">
+                <from>actual_number_of_trees_available_per_person_3</from>
+                <to>effect_of_tree_supply__on_tree_consumption_per_year_3</to>
+            </connector>
+            <connector x="2787" y="279" uid="46" color="#FF007F">
+                <from>desired_number_of_trees_per_person_3</from>
+                <to>effect_of_tree_supply__on_tree_consumption_per_year_3</to>
+            </connector>
+            <connector x="2766" y="348" uid="47" color="#FF007F">
+                <from>actual_consumption_per_person_per_year_3</from>
+                <to>consumption_3</to>
+            </connector>
+            <connector x="3479" y="286" uid="48" color="#FF007F">
+                <from>effect_of_tree_supply__on_tree_consumption_per_year_4</from>
+                <to>actual_consumption_per_person_per_year_4</to>
+            </connector>
+            <connector x="2661" y="141" uid="49" color="#FF007F">
+                <from>Population_3</from>
+                <to>available_trees_per_person_3</to>
+            </connector>
+            <connector x="2663" y="378" uid="50" color="#FF007F">
+                <from>Trees_3</from>
+                <to>available_trees_per_person_3</to>
+            </connector>
+            <connector x="2623" y="259" uid="51" color="#FF007F">
+                <from>available_trees_per_person_3</from>
+                <to>actual_number_of_trees_available_per_person_3</to>
+            </connector>
+            <connector x="2790" y="273" uid="52" color="#FF007F">
+                <from>desired_number_of_trees_per_person_3</from>
+                <to>actual_number_of_trees_available_per_person_3</to>
+            </connector>
+            <connector x="3304" y="133" uid="53" color="#FF007F">
+                <from>birth_rate_4</from>
+                <to>births_4</to>
+            </connector>
+            <connector x="3414" y="116" uid="54" color="#FF007F">
+                <from>Population_4</from>
+                <to>births_4</to>
+            </connector>
+            <connector x="3458" y="115" uid="55" color="#FF007F">
+                <from>Population_4</from>
+                <to>deaths_4</to>
+            </connector>
+            <connector x="3581" y="129" uid="56" color="#FF007F">
+                <from>death_rate_4</from>
+                <to>deaths_4</to>
+            </connector>
+            <connector x="3535" y="164" uid="57" color="#FF007F">
+                <from>effect_of_tree_supply_on_death_rate_4</from>
+                <to>death_rate_4</to>
+            </connector>
+            <connector x="3626" y="184" uid="58" color="#FF007F">
+                <from>normal_death_rate_4</from>
+                <to>death_rate_4</to>
+            </connector>
+            <connector x="3457" y="204" uid="59" color="#FF007F">
+                <from>actual_number_of_trees_available_per_person_4</from>
+                <to>effect_of_tree_supply_on_death_rate_4</to>
+            </connector>
+            <connector x="3560" y="248" uid="60" color="#FF007F">
+                <from>desired_number_of_trees_per_person_4</from>
+                <to>effect_of_tree_supply_on_death_rate_4</to>
+            </connector>
+            <connector x="3457" y="85" uid="61" color="#FF007F">
+                <from>Population_4</from>
+                <to>consumption_4</to>
+            </connector>
+            <connector x="3448" y="220" uid="62" color="#FF007F">
+                <from>actual_number_of_trees_available_per_person_4</from>
+                <to>effect_of_tree_supply__on_tree_consumption_per_year_4</to>
+            </connector>
+            <connector x="3547" y="259" uid="63" color="#FF007F">
+                <from>desired_number_of_trees_per_person_4</from>
+                <to>effect_of_tree_supply__on_tree_consumption_per_year_4</to>
+            </connector>
+            <connector x="3515" y="325" uid="64" color="#FF007F">
+                <from>actual_consumption_per_person_per_year_4</from>
+                <to>consumption_4</to>
+            </connector>
+            <connector x="3421" y="119" uid="65" color="#FF007F">
+                <from>Population_4</from>
+                <to>available_trees_per_person_4</to>
+            </connector>
+            <connector x="3422" y="352" uid="66" color="#FF007F">
+                <from>Mature_Trees</from>
+                <to>available_trees_per_person_4</to>
+            </connector>
+            <connector x="3366" y="234" uid="67" color="#FF007F">
+                <from>available_trees_per_person_4</from>
+                <to>actual_number_of_trees_available_per_person_4</to>
+            </connector>
+            <connector x="3550" y="250" uid="68" color="#FF007F">
+                <from>desired_number_of_trees_per_person_4</from>
+                <to>actual_number_of_trees_available_per_person_4</to>
+            </connector>
+            <connector x="3419" y="411" uid="69" color="#FF007F">
+                <from>time_to__mature</from>
+                <to>maturing</to>
+            </connector>
+            <connector x="3321" y="390" uid="70" color="#FF007F">
+                <from>Sapplings</from>
+                <to>maturing</to>
+            </connector>
+            <connector x="1902" y="295" uid="71" color="#FF007F">
+                <from>effect_of_tree_supply__on_tree_consumption_per_year_2</from>
+                <to>actual_consumption_per_person_per_year_2</to>
+            </connector>
+            <connector x="2011" y="334" uid="72" color="#FF007F">
+                <from>normal_tree_consumption_per__person_per_year_2</from>
+                <to>actual_consumption_per_person_per_year_2</to>
+            </connector>
+            <connector x="2806" y="322" uid="73" color="#FF007F">
+                <from>normal_tree_consumption_per__person_per_year_3</from>
+                <to>actual_consumption_per_person_per_year_3</to>
+            </connector>
+            <connector x="3562" y="305" uid="74" color="#FF007F">
+                <from>normal_tree_consumption_per__person_per_year_4</from>
+                <to>actual_consumption_per_person_per_year_4</to>
+            </connector>
+            <popup x="528" y="369">
+                <stacked_container visible="false" height="282" width="492" visible_index="1" uid="pad_251021224">
+                    <graph type="time_series" title="Population and Trees Basic Model  Results0" background="white" show_grid="false" numbers_on_plots="true" isee:use_five_segments="false" locked="true" isee:hide_detail="true" time_precision="2" from="400" to="2000">
+                        <plot pen_width="3" precision="0">
+                            <index>0</index>
+                            <color>blue</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="8000" />
+                            <entity name="Population" />
+                            <data name="Run 1 data" />
+                        </plot>
+                        <plot pen_width="3" precision="0">
+                            <index>1</index>
+                            <color>red</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="40000" />
+                            <entity name="Trees" />
+                            <data name="Run 1 data" />
+                        </plot>
+                    </graph>
+                    <graph type="time_series" title="Population, Birth Rate, Death Rate, Trees Consumed per Person" background="white" show_grid="false" numbers_on_plots="true" isee:use_five_segments="false" locked="true" isee:hide_detail="true" time_precision="2" from="400" to="2000">
+                        <plot pen_width="3" precision="0">
+                            <index>0</index>
+                            <color>blue</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="8000" />
+                            <entity name="Population" />
+                            <data name="Run 3 data" />
+                        </plot>
+                        <plot pen_width="3" precision="1">
+                            <index>1</index>
+                            <color>red</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="0.5" />
+                            <entity name="birth_rate" />
+                            <data name="Run 3 data" />
+                        </plot>
+                        <plot pen_width="3" precision="1">
+                            <index>2</index>
+                            <color>fuchsia</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="0.5" />
+                            <entity name="death_rate" />
+                            <data name="Run 3 data" />
+                        </plot>
+                        <plot pen_width="3" precision="0">
+                            <index>3</index>
+                            <color>#008F44</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="0.5" />
+                            <entity name="actual_number_of_trees_available_per_person" />
+                            <data name="Run 3 data" />
+                        </plot>
+                    </graph>
+                </stacked_container>
+            </popup>
+            <pad_icon x="904" y="260" width="26" height="22" color="#0CA0FF" label="Problem 17 Graphs" type="graph" icon_of="pad_251021224">
+                <label_side>bottom</label_side>
+            </pad_icon>
+            <popup x="528" y="369">
+                <stacked_container visible="false" height="282" width="492" visible_index="0" uid="pad_251011418">
+                    <graph type="time_series" title="Population with Slave Ship" background="white" show_grid="false" numbers_on_plots="true" isee:use_five_segments="false" locked="true" isee:hide_detail="true" time_precision="2" from="400" to="2000">
+                        <plot pen_width="3" precision="0">
+                            <index>0</index>
+                            <color>blue</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="8000" />
+                            <entity name="Population_2" />
+                            <data name="Run 1 data" />
+                        </plot>
+                        <plot pen_width="3" precision="0">
+                            <index>1</index>
+                            <color>red</color>
+                            <show_y_axis>true</show_y_axis>
+                            <entity name="Trees_2" />
+                            <data name="Run 1 data" />
+                        </plot>
+                    </graph>
+                </stacked_container>
+            </popup>
+            <pad_icon x="1660" y="283" width="26" height="22" color="#0CA0FF" label="Graph 1" type="graph" icon_of="pad_251011418">
+                <label_side>bottom</label_side>
+            </pad_icon>
+            <popup x="528" y="369">
+                <stacked_container visible="false" height="282" width="492" visible_index="0" uid="pad_251007114">
+                    <graph type="time_series" title="Replanting Trees in 1600 (Trees available for use in one year)" background="white" show_grid="false" numbers_on_plots="true" isee:use_five_segments="false" locked="true" isee:hide_detail="true" time_precision="2" from="400" to="2000">
+                        <plot pen_width="3" precision="0">
+                            <index>0</index>
+                            <color>blue</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="8000" />
+                            <entity name="Population_3" />
+                            <data name="Run 2 data" />
+                        </plot>
+                        <plot pen_width="3" precision="0">
+                            <index>1</index>
+                            <color>red</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="40000" />
+                            <entity name="Trees_3" />
+                            <data name="Run 2 data" />
+                        </plot>
+                    </graph>
+                    <graph type="time_series" title="Replanting Trees in 1700 (Trees available for use in one year)" background="white" show_grid="false" numbers_on_plots="true" isee:use_five_segments="false" locked="true" isee:hide_detail="true" time_precision="2" from="400" to="2000">
+                        <plot pen_width="3" precision="0">
+                            <index>0</index>
+                            <color>blue</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="8000" />
+                            <entity name="Population_3" />
+                            <data name="Run 1 data" />
+                        </plot>
+                        <plot pen_width="3" precision="0">
+                            <index>1</index>
+                            <color>red</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="40000" />
+                            <entity name="Trees_3" />
+                            <data name="Run 1 data" />
+                        </plot>
+                    </graph>
+                </stacked_container>
+            </popup>
+            <pad_icon x="2426" y="268" width="26" height="22" color="#0CA0FF" label="Problem 20 Graphs" type="graph" icon_of="pad_251007114">
+                <label_side>bottom</label_side>
+            </pad_icon>
+            <popup x="528" y="369">
+                <stacked_container visible="false" height="282" width="492" visible_index="0" uid="pad_250999362">
+                    <graph type="time_series" title="Replanting Trees With Maturation of 20 Years" background="white" show_grid="false" numbers_on_plots="true" isee:use_five_segments="false" locked="true" isee:hide_detail="true" time_precision="2" from="400" to="2000">
+                        <plot pen_width="3" precision="0">
+                            <index>0</index>
+                            <color>blue</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="8000" />
+                            <entity name="Population_4" />
+                            <data name="Run 2 data" />
+                        </plot>
+                        <plot pen_width="3" precision="0">
+                            <index>1</index>
+                            <color>red</color>
+                            <show_y_axis>true</show_y_axis>
+                            <scale min="0" max="40000" />
+                            <entity name="Mature_Trees" />
+                            <data name="Run 2 data" />
+                        </plot>
+                    </graph>
+                </stacked_container>
+            </popup>
+            <pad_icon x="3210" y="187" width="26" height="22" color="#0CA0FF" label="Problem 21 Graph" type="graph" icon_of="pad_250999362">
+                <label_side>bottom</label_side>
+            </pad_icon>
+            <popup x="342" y="482">
+                <stacked_container visible="false" height="270" width="475" visible_index="0" uid="pad_250995966">
+                    <table title="Pop &amp; Trees Basic Model Output" font-size="9" background="#E0E0E0" columns_width="59" orientation="vertical" report_every_dt="true" isee:periods="6401" report_from="400" report_to="2000" isee:date_time="-846440952">
+                        <item type="time" color="black" text-align="left" precision="3" width="100" />
+                        <item color="black" text-align="left" precision="2" thousands_separator="true">
+                            <entity name="Population" />
+                            <index>0</index>
+                        </item>
+                        <item color="black" text-align="left" precision="2" thousands_separator="true">
+                            <entity name="Trees" />
+                            <index>1</index>
+                        </item>
+                    </table>
+                </stacked_container>
+            </popup>
+            <pad_icon x="898" y="334" width="26" height="22" color="#008F44" label="Problem 18 Table" type="table" icon_of="pad_250995966">
+                <label_side>bottom</label_side>
+            </pad_icon>
+            <button x="3649" y="28" width="26" height="26" uid="75" appearance="opaque" background="white" color="white" style="square">
+                <image width="24" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAZCAIAAACkSXkKAAAA00lEQVQ4jd2UsQ4CIQyGqeFpSFgYSW7wXkt9Jd0cz+EMbi4mvg4Ojc0dtI0kDBf/gZC09/HTloP362l6aNeF8t8gKwWcD1KI7Q8Pcj7knNkQALQ5qr/JOQOANC4MiOxIptocsXbMt3a1r7JrSztLYTTNCde6Fbag1F5IaU5xiLhqV3M+4IGSiMKybJGqgIjFhlagOmm6TbgZ9yOdFIdYF1ubI2PM4XTEzeOedNe/Xy2SazZtNal6vanM7HCXI6+8VZT0RMS306rt/di2B7Lny7UL6APYvm2s8CBlzg==</image>
+                <menu_action>print_screen</menu_action>
+            </button>
+            <button x="3691" y="28" width="28" height="26" uid="76" appearance="opaque" background="white" color="white" style="square" clicking_sound="false">
+                <link target="model" x="0" y="0" />
+                <image width="27" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAZCAIAAABPfsIJAAABBUlEQVRIie3VMW6EMBAF0D9RzuCCK3ilTbfUKShS7Ck4AZ19gJyCU7igpE6ZYlokKrdI5gBsMZJFYVjCoo0UZSpsxPPMyNjE3184LvT58nIgJ/EvPlF0TXt6y+PzfLhHdE1bluU0TVEx1u7P0TWtMUYpRURzdCVe73JE5JwDICgRmX2iFCtcURQAnHMRXRHTVQunlIpcCCHP84j+TExy8kprHdGlnqZzTHLjOM7RpRwTfbx+vAOfkavrWuattV3XAciyDMDSobVph1dVJQtsiTUxhCCVMrP3/gBROADee2beKC7uxznBzH3fAxiG4a5IyQZv+duSH+rzJZ3jI5fPnzlxf1m8ASWIjnq6OMe7</image>
+            </button>
+            <button x="408" y="364" width="151" height="36" uid="77" appearance="opaque" background="black" color="white" style="square" clicking_sound="false" label="To Problem 21..." font-family="Arial" font-size="12" text-align="center">
+                <link target="model" x="3104" y="0" />
+            </button>
+            <button x="1398" y="28" width="28" height="26" uid="78" appearance="opaque" background="white" color="white" style="square" clicking_sound="false">
+                <link target="model" x="0" y="0" />
+                <image width="27" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAZCAIAAABPfsIJAAABBUlEQVRIie3VMW6EMBAF0D9RzuCCK3ilTbfUKShS7Ck4AZ19gJyCU7igpE6ZYlokKrdI5gBsMZJFYVjCoo0UZSpsxPPMyNjE3184LvT58nIgJ/EvPlF0TXt6y+PzfLhHdE1bluU0TVEx1u7P0TWtMUYpRURzdCVe73JE5JwDICgRmX2iFCtcURQAnHMRXRHTVQunlIpcCCHP84j+TExy8kprHdGlnqZzTHLjOM7RpRwTfbx+vAOfkavrWuattV3XAciyDMDSobVph1dVJQtsiTUxhCCVMrP3/gBROADee2beKC7uxznBzH3fAxiG4a5IyQZv+duSH+rzJZ3jI5fPnzlxf1m8ASWIjnq6OMe7</image>
+            </button>
+            <button x="1363" y="29" width="26" height="26" uid="79" appearance="opaque" background="white" color="white" style="square">
+                <image width="24" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAZCAIAAACkSXkKAAAA00lEQVQ4jd2UsQ4CIQyGqeFpSFgYSW7wXkt9Jd0cz+EMbi4mvg4Ojc0dtI0kDBf/gZC09/HTloP362l6aNeF8t8gKwWcD1KI7Q8Pcj7knNkQALQ5qr/JOQOANC4MiOxIptocsXbMt3a1r7JrSztLYTTNCde6Fbag1F5IaU5xiLhqV3M+4IGSiMKybJGqgIjFhlagOmm6TbgZ9yOdFIdYF1ubI2PM4XTEzeOedNe/Xy2SazZtNal6vanM7HCXI6+8VZT0RMS306rt/di2B7Lny7UL6APYvm2s8CBlzg==</image>
+                <menu_action>print_screen</menu_action>
+            </button>
+            <button x="114" y="297" width="151" height="36" uid="80" appearance="opaque" background="black" color="white" style="square" clicking_sound="false" label="To Problems 1-18..." font-family="Arial" font-size="12" text-align="center">
+                <link target="model" x="774" y="0" />
+            </button>
+            <button x="673" y="17" width="28" height="26" uid="81" appearance="opaque" background="white" color="white" style="square" clicking_sound="false">
+                <image width="27" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAZCAIAAABPfsIJAAABBUlEQVRIie3VMW6EMBAF0D9RzuCCK3ilTbfUKShS7Ck4AZ19gJyCU7igpE6ZYlokKrdI5gBsMZJFYVjCoo0UZSpsxPPMyNjE3184LvT58nIgJ/EvPlF0TXt6y+PzfLhHdE1bluU0TVEx1u7P0TWtMUYpRURzdCVe73JE5JwDICgRmX2iFCtcURQAnHMRXRHTVQunlIpcCCHP84j+TExy8kprHdGlnqZzTHLjOM7RpRwTfbx+vAOfkavrWuattV3XAciyDMDSobVph1dVJQtsiTUxhCCVMrP3/gBROADee2beKC7uxznBzH3fAxiG4a5IyQZv+duSH+rzJZ3jI5fPnzlxf1m8ASWIjnq6OMe7</image>
+                <popup x="-388" y="73" width="292" height="75" background="yellow" color="black">
+                    <text_box font-family="Arial" font-size="13">A click on this button from any other screen will take you to this home screen.</text_box>
+                </popup>
+            </button>
+            <button x="642" y="18" width="26" height="26" uid="82" appearance="opaque" background="white" color="white" style="square">
+                <image width="24" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAZCAIAAACkSXkKAAAA00lEQVQ4jd2UsQ4CIQyGqeFpSFgYSW7wXkt9Jd0cz+EMbi4mvg4Ojc0dtI0kDBf/gZC09/HTloP362l6aNeF8t8gKwWcD1KI7Q8Pcj7knNkQALQ5qr/JOQOANC4MiOxIptocsXbMt3a1r7JrSztLYTTNCde6Fbag1F5IaU5xiLhqV3M+4IGSiMKybJGqgIjFhlagOmm6TbgZ9yOdFIdYF1ubI2PM4XTEzeOedNe/Xy2SazZtNal6vanM7HCXI6+8VZT0RMS306rt/di2B7Lny7UL6APYvm2s8CBlzg==</image>
+                <menu_action>print_screen</menu_action>
+            </button>
+            <button x="116" y="362" width="151" height="36" uid="83" appearance="opaque" background="black" color="white" style="square" clicking_sound="false" label="To Problem 19..." font-family="Arial" font-size="12" text-align="center">
+                <link target="model" x="1532" y="0" />
+            </button>
+            <button x="406" y="295" width="151" height="36" uid="84" appearance="opaque" background="black" color="white" style="square" clicking_sound="false" label="To Problem 20..." font-family="Arial" font-size="12" text-align="center">
+                <link target="model" x="2298" y="0" />
+            </button>
+            <button x="2160" y="30" width="28" height="26" uid="85" appearance="opaque" background="white" color="white" style="square" clicking_sound="false">
+                <link target="model" x="0" y="0" />
+                <image width="27" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAZCAIAAABPfsIJAAABBUlEQVRIie3VMW6EMBAF0D9RzuCCK3ilTbfUKShS7Ck4AZ19gJyCU7igpE6ZYlokKrdI5gBsMZJFYVjCoo0UZSpsxPPMyNjE3184LvT58nIgJ/EvPlF0TXt6y+PzfLhHdE1bluU0TVEx1u7P0TWtMUYpRURzdCVe73JE5JwDICgRmX2iFCtcURQAnHMRXRHTVQunlIpcCCHP84j+TExy8kprHdGlnqZzTHLjOM7RpRwTfbx+vAOfkavrWuattV3XAciyDMDSobVph1dVJQtsiTUxhCCVMrP3/gBROADee2beKC7uxznBzH3fAxiG4a5IyQZv+duSH+rzJZ3jI5fPnzlxf1m8ASWIjnq6OMe7</image>
+            </button>
+            <button x="2125" y="31" width="26" height="26" uid="86" appearance="opaque" background="white" color="white" style="square">
+                <image width="24" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAZCAIAAACkSXkKAAAA00lEQVQ4jd2UsQ4CIQyGqeFpSFgYSW7wXkt9Jd0cz+EMbi4mvg4Ojc0dtI0kDBf/gZC09/HTloP362l6aNeF8t8gKwWcD1KI7Q8Pcj7knNkQALQ5qr/JOQOANC4MiOxIptocsXbMt3a1r7JrSztLYTTNCde6Fbag1F5IaU5xiLhqV3M+4IGSiMKybJGqgIjFhlagOmm6TbgZ9yOdFIdYF1ubI2PM4XTEzeOedNe/Xy2SazZtNal6vanM7HCXI6+8VZT0RMS306rt/di2B7Lny7UL6APYvm2s8CBlzg==</image>
+                <menu_action>print_screen</menu_action>
+            </button>
+            <button x="2930" y="28" width="28" height="26" uid="87" appearance="opaque" background="white" color="white" style="square" clicking_sound="false">
+                <link target="model" x="0" y="0" />
+                <image width="27" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAZCAIAAABPfsIJAAABBUlEQVRIie3VMW6EMBAF0D9RzuCCK3ilTbfUKShS7Ck4AZ19gJyCU7igpE6ZYlokKrdI5gBsMZJFYVjCoo0UZSpsxPPMyNjE3184LvT58nIgJ/EvPlF0TXt6y+PzfLhHdE1bluU0TVEx1u7P0TWtMUYpRURzdCVe73JE5JwDICgRmX2iFCtcURQAnHMRXRHTVQunlIpcCCHP84j+TExy8kprHdGlnqZzTHLjOM7RpRwTfbx+vAOfkavrWuattV3XAciyDMDSobVph1dVJQtsiTUxhCCVMrP3/gBROADee2beKC7uxznBzH3fAxiG4a5IyQZv+duSH+rzJZ3jI5fPnzlxf1m8ASWIjnq6OMe7</image>
+            </button>
+            <button x="2895" y="29" width="26" height="26" uid="88" appearance="opaque" background="white" color="white" style="square">
+                <image width="24" height="25">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAZCAIAAACkSXkKAAAA00lEQVQ4jd2UsQ4CIQyGqeFpSFgYSW7wXkt9Jd0cz+EMbi4mvg4Ojc0dtI0kDBf/gZC09/HTloP362l6aNeF8t8gKwWcD1KI7Q8Pcj7knNkQALQ5qr/JOQOANC4MiOxIptocsXbMt3a1r7JrSztLYTTNCde6Fbag1F5IaU5xiLhqV3M+4IGSiMKybJGqgIjFhlagOmm6TbgZ9yOdFIdYF1ubI2PM4XTEzeOedNe/Xy2SazZtNal6vanM7HCXI6+8VZT0RMS306rt/di2B7Lny7UL6APYvm2s8CBlzg==</image>
+                <menu_action>print_screen</menu_action>
+            </button>
+            <text_box x="1546" y="9" uid="89" color="#3D4065" font-family="Arial" font-size="18" margin="5" width="377" height="84">Easter Island&#x0D;Problem 19</text_box>
+            <text_box x="2324" y="6" uid="90" color="#3D4065" font-family="Arial" font-size="18" margin="5" width="156" height="89">Easter Island&#x0D;Problem 20</text_box>
+            <text_box x="3147" y="4" uid="91" color="#3D4065" font-family="Arial" font-size="18" margin="5" width="167" height="79">Easter Island&#x0D;Problem 21</text_box>
+            <text_box x="819" y="11" uid="92" color="#3D4065" font-family="Arial" font-size="18" margin="5" width="168" height="83">Easter Island&#x0D;Problems 1 - 18</text_box>
+            <text_box x="192" y="132" uid="93" color="#000D98" font-family="Arial" font-size="12" margin="5" border-style="solid" border-width="thin" width="260" height="127">Easter Island&#x0D;&#x0D;Problems 1 - 18&#x0D;Problem 19&#x0D;Problem 20&#x0D;Problem 21</text_box>
+            <text_box x="3131" y="238" uid="94" color="#FF007F" font-family="Arial" font-size="12" margin="5" width="177" height="25">Note that the graph is locked!</text_box>
+            <text_box x="1591" y="353" uid="95" color="#FF007F" font-family="Arial" font-size="12" lock_text="true" margin="5" width="169" height="26">Note that the graph is locked!</text_box>
+            <text_box x="821" y="379" uid="96" color="#FF007F" font-family="Arial" font-size="12" lock_text="true" margin="5" width="241" height="27">Note that the graphs are locked!</text_box>
+            <text_box x="2339" y="393" uid="97" color="#FF007F" font-family="Arial" font-size="12" lock_text="true" margin="5" width="184" height="27">Note that the graph is locked!</text_box>
+            <graphics_frame x="2" y="3" uid="98" width="471" height="175" border-color="black" fill="none">
+                <image width="472" height="182">data:image/png;base64,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xQvEl734MxIE8SZBUZwJgiAShryvEQRBJAwJYoIgiIQhQUwQBJEwJIgJgiAShgQxQRBEwpAgJgiCSBgSxARBEAlDgpggCCJhSBATBEEkDAligiCIhCFBTBAEkTAkiAmCIBKGBDFBEETCkCAmCIJIGBLEBEEQCUOCmCAIImFIEBMEQSQMCWKCIIiEIUFMEASRMCSICYIgEoYEMUEQRNJ0Irh8+fJvfvMbTPZv//ZvjLHJyckrV668++67H3zwQTqdvnnz5s2bNycmJt577718Pg9pJiYm8vm8JEmXL1++evXqv/zLv6TT6XfeeefKlSsTExNXr1595513IM/33nsP0t+8efPSpUtwfOmMq1evZrPZd95554MPPpiYmLhy5crVq1cvX7587dq1y5cv37x584MPPmCMQW6XL1++fPmyJEmpVCqdTqdSqXfffRf+v3Tp0jvvvPPrX/86m81CGSYmJhhj77///pUrV95///2bN2/++te/vnTp0nvvvQf5p1KpS5cuvf/++zMzMxNnwN3hSaH8VD9UP1Q/VD891s9//ud/RgnbTqcz0el0QgU01CYwMzMzOTlZq9VmZmb+93//94cffpiYmPjlL3/5ww8/fPDBB//1X/+VzWaPjo5+/PHHn/3sZ3/729/gqkuXLv3qV7/6xz/+ceXKlT/96U9///vf//GPf4TeLp1O/+u//uvf/va3//7v/240GpcuXbp+/brneT/++GO73b569epf//rXS5cuXbt2bWpq6s9//vN3333397//HUr4ww8/YM1iJV67du1nP/vZ//3f/0Fhrl271mw2r169+k//9E+NRqPRaDDGUqlUq9WC4l25cuWf//mf/+d//ufnP//5d999B03barXefffdq1ev/vnPf/73f//3v/zlLz/88MPx8TFj7Mcff+TLT/VD9UP1Q/UTXz//8R//sbu7G7w7ECmICYIgiNFAOmKCIIiEIUFMEASRMCSICYIgEoYEMUEQRMKQICYIgkgYEsQEQRAJQ4KYIAgiYUgQEwRBJAwJYoIgiIQhQUwQBJEwJIgJgiAShgQxQRBEwpAgJgiCSBgSxARBEAlDgpggCCJhSBATBEEkDAligiCIhCFBTBAEkTCjFsSOU3fdxohv2kcxxqScBEG8DQxFEE9M/D74T5ZXGWOatmGa+8FLFOWJojwZRmFCiSpG7wkIgiAGxeVhZLq39wAONO2ZJM2o6hxjTBAmYy6BNARBEG8hQxHEspyFA0GYEsU0/onYds22j0QxDfLXceqQEn61LMdx6qKYVhRJEKb4Cz2v5boNUUyb5oHntVR1ThAm8RhzcN0GzGf5k/x9feUxzX3INnjHUKCEgjClqrOQ3vNaUAxZvgHPa9s1UUzjvTyv5Tin+JNtHwnClKJIkMB1G57XEoQp09yHanGcumU5fBqCIN5UElisM4xd09z3vLambej6NmPMNA8U5QmITl3fVlUTTlqW47vWcU5leVWWVz2vZds1SfpcUZ66bsNx6pL0OWh1Lcu5fv2h57U9ry1Jn6OGQVVN0H7Ydq1SqcFJz2tJ0ueGsQt3hJxjCs+nt+0jRXnKGHPdhig+tO0juMtZ+fd5ZYuu75y9G14WA8rsOPWzxE/hQkGYsu3ahx8+8ry249ShigiCeJPpDJN8/oti8SvfmeXlZ3BcKn2TSi37UvIJXrz43pfh3t4RY/fg/IsX3zN2b3PzEH7KZP4AOWQyf1hb+9p3i729o1RqGTPE2xUKpUzmD8HiBUsOFAqlfP4L/BMyLBRKCwt/hDPHx88Zu3d4+C0U9fDwWzifSi3v7R2VSt8wdu/4+DmcLBa/yuU+gwO+eHg+tBIIgnjDSGBGjMpiUfxFs9n2/SrLWdPch8ljlJYAzvP/M8bg+91x6icnDVWdhZOqOtdstm27Zpr7oWoHy3JEMa3r2/APcogpvGU5mjbvK4llOajjFsV0Pp+1LEeWs7nc9Nlcex9UNJblZDJp09yH27luo1o9hQslaQaLJ8s3qtVTXd8GfUVMeQiCeAMYOztiXb9jGIu6viOKD+NlYiie12ZhEhxUwMH0zWabPy/LWRTioTSb7WDmoScZY5o2b1kOqI9BfHveK7cTxXSxeDt4oSxn9/Ye2HZNFB+S8QZBvPEMZbHugqjqnKJIivJU17ct6+NzXYtrX3gAJwVhMtQuOJNJy3K2d5uNTCbtus8Zy8acxLur6pymbRjGruPUVfUBFk/X73S9kSxnbfuBpm1o2gaZlBDEm83YzYjRfkCSZmB6ey5EMZ3LTeMsUte3c7lpMIcAUwc4jytyqjprGLv4p23XMCvbrgUX7kLTK4pkmgdwxjT3wXYC/tS0+ZWVHdRmqOocXwz+djxgHMIYk+Usam9AKGMaWAzEkjhOXZZX+/iGIAgiccZuRqzr25blSNKM49RNU+0jB9NUFeUpWFx4XtuyPmKMqeocmCLk81nPa6GI1/U7YPMgSTMwk7XtB4wxTZu/e/epojyFP7nivZJekqZlOavrtxXlqSg+FMW049QNYxH1D6o6t7Kyg1NaWc4axiIWw3Ubrvs4VHO9tFTO57OOU0fdBbxdDGMR02xtVV23IUlT7MwUxLZrkjTTR6URBJEgE51OJ+ky+HGcuue1JWn6IutUMNn0mTC7bgOkpy9nOM+b/bKzaWmoXAtNH1XsoHoabIoFYTJGaAZvgWqWqOLZdi1osk0QxPgzjoKYIAjirWLsdMQEQRBvGySICYIgEoYEMUEQRMKQICYIgkgYEsQEQRAJQ4KYIAgiYUgQEwRBJAwJYoIgiIQhQUwQBJEwJIgJgiAShgQxQRBEwpAgJgiCSBgSxARBEAlDgpggCCJhSBATBEEkDAligiCIhCFBTBAEkTAkiAmCIBKGBDFBEETCkCAmCIJIGBLEBEEQCUOCmCAIImFIEBMEQSQMCWKCIIiEIUFMEASRMCSICYIgEoYEMUEQRMKQICYIgkgYEsQEQRAJQ4KYIAgiYUgQEwRBJAwJYoIgiIQhQUwQBJEwJIgJgiAShgQxQRBEwpAgJgiCSJj/B+6Au2z1Y6dI</image>
+            </graphics_frame>
+        </display>
+        <interface scroll_x="0" scroll_y="0" zoom="100">
+            <simulation_delay>0</simulation_delay>
+            <pages show="false" row_count="1" column_count="1" home_page="1" width="1588" height="1128" />
+        </interface>
+    </model>
+</xmile>

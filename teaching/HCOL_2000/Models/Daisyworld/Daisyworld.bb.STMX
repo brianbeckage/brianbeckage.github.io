@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+	<header>
+		<smile version="1.0" namespace="std, isee" uses_arrays="1"/>
+		<name>Daisyworld.bb</name>
+		<uuid>b6df6171-1e13-402c-8f86-44da60cc7421</uuid>
+		<vendor>isee systems, inc.</vendor>
+		<product version="2.0.3" isee:build_number="2282" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+	</header>
+	<sim_specs isee:sim_duration="0" isee:simulation_delay="0" isee:restore_on_start="false" method="Euler" time_units="Time" isee:instantaneous_flows="false" isee:loop_scores="true" isee:loop_exhaustive_allowed="1000" isee:analyze_mode="false">
+		<start>75</start>
+		<stop>250</stop>
+		<dt>0.5</dt>
+	</sim_specs>
+	<dimensions>
+		<dim name="Dim_Name_1" size="1"/>
+	</dimensions>
+	<isee:prefs show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="true" layer="model" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rerun_on_structure_change="false" saved_runs="5" keep="false" rifp="false"/>
+	<isee:multiplayer_settings include_chat="true" allow_observers="false" advance_time_increment="1" max_advance_time_in_ms="0" observer_start_page="home_page" enabled="false"/>
+	<isee:time_formats default_format="Builtin">
+		<isee:time_format name="Builtin" type="adaptive"/>
+	</isee:time_formats>
+	<default_format/>
+	<model_units/>
+	<model>
+		<isee:extra_collection_variables>
+			<isee:extra_collection_variable name="DARK_DAISY_TEMP"/>
+			<isee:extra_collection_variable name="SUN_LUMINOSITY"/>
+			<isee:extra_collection_variable name="WORLD_TEMP"/>
+			<isee:extra_collection_variable name="DARK_DAISY_AREA"/>
+			<isee:extra_collection_variable name="DAISY_AREA"/>
+			<isee:extra_collection_variable name="LIGHT_DAISY_AREA"/>
+			<isee:extra_collection_variable name="LIGHT_DAISY_TEMP"/>
+		</isee:extra_collection_variables>
+		<variables>
+			<aux name="DAISY AREA">
+				<eqn> LIGHT_DAISY_AREA+DARK_DAISY_AREA {Fraction of area covered by daisies}</eqn>
+			</aux>
+			<aux name="DARK DAISY ALBEDO">
+				<eqn>0.25</eqn>
+			</aux>
+			<flow name="DARK DAISY BIRTH">
+				<eqn> IF ((DARK_DAISY_TEMP&gt;5) AND (DARK_DAISY_TEMP&lt;45)) THEN DARK_DAISY_AREA*NO_DAISY_AREA*DARK_DAISY_GROWTH ELSE 0</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="DARK DAISY DEATH">
+				<eqn> DARK_DAISY_AREA*DEATH_RATE</eqn>
+				<non_negative/>
+			</flow>
+			<aux name="DARK DAISY GROWTH">
+				<eqn> 1 - 0.003265*(25 - DARK_DAISY_TEMP)^2</eqn>
+			</aux>
+			<aux name="DARK DAISY TEMP">
+				<eqn> LOCAL_TEMP_FUNC*(WORLD_ALBEDO - DARK_DAISY_ALBEDO) + WORLD_TEMP</eqn>
+				<scale min="0" max="100"/>
+			</aux>
+			<aux name="DEATH RATE">
+				<eqn>0.3</eqn>
+			</aux>
+			<aux name="FERTILE AREA">
+				<eqn>1</eqn>
+			</aux>
+			<aux name="GROUND ALBEDO">
+				<eqn>0.5</eqn>
+			</aux>
+			<aux name="GROUND AREA">
+				<eqn>1 - DARK_DAISY_AREA - LIGHT_DAISY_AREA  {Fraction of total area not covered by daisies}</eqn>
+			</aux>
+			<aux name="LIGHT DAISY ALBEDO">
+				<eqn>0.75</eqn>
+			</aux>
+			<flow name="LIGHT DAISY BIRTH">
+				<eqn> IF ((LIGHT_DAISY_TEMP&gt;5) AND (LIGHT_DAISY_TEMP&lt;45)) THEN LIGHT_DAISY_AREA*NO_DAISY_AREA*LIGHT_DAISY_GROWTH ELSE 0</eqn>
+				<non_negative/>
+			</flow>
+			<flow name="LIGHT DAISY DEATH">
+				<eqn> LIGHT_DAISY_AREA*DEATH_RATE</eqn>
+				<non_negative/>
+			</flow>
+			<aux name="LIGHT DAISY GROWTH">
+				<eqn> 1 - 0.003265*(25 - LIGHT_DAISY_TEMP)^2</eqn>
+			</aux>
+			<aux name="LIGHT DAISY TEMP">
+				<eqn> LOCAL_TEMP_FUNC*(WORLD_ALBEDO - LIGHT_DAISY_ALBEDO) + WORLD_TEMP</eqn>
+				<scale min="0" max="100"/>
+			</aux>
+			<aux name="LIGHT FLUX">
+				<eqn> 9.17e2 {W/(sec m^2)}</eqn>
+			</aux>
+			<aux name="LOCAL TEMP FUNC">
+				<eqn>20</eqn>
+			</aux>
+			<aux name="NO DAISY AREA">
+				<eqn> FERTILE_AREA - LIGHT_DAISY_AREA - DARK_DAISY_AREA  {Fraction of fertile area not covered by daisies}</eqn>
+			</aux>
+			<aux name="STEFANS CONSTANT">
+				<eqn> 5.6703e-8 {W/(m^2 K^4)}</eqn>
+			</aux>
+			<aux name="SUN LUMINOSITY">
+				<eqn>IF TIME &gt;=120 AND TIME &lt;= 180 THEN 2
+ELSE 1</eqn>
+				<scale min="0" max="2.5"/>
+			</aux>
+			<aux name="WORLD ALBEDO">
+				<eqn>(LIGHT_DAISY_AREA*LIGHT_DAISY_ALBEDO + DARK_DAISY_ALBEDO*DARK_DAISY_AREA + GROUND_AREA*GROUND_ALBEDO)</eqn>
+			</aux>
+			<aux name="WORLD TEMP">
+				<eqn> ((SUN_LUMINOSITY*LIGHT_FLUX*(1 - WORLD_ALBEDO))/STEFANS_CONSTANT)^0.25 - 273</eqn>
+				<scale min="0" max="100"/>
+			</aux>
+			<stock name="DARK DAISY AREA">
+				<eqn>0.0001</eqn>
+				<scale min="0" max="0.7"/>
+				<inflow>DARK_DAISY_BIRTH</inflow>
+				<outflow>DARK_DAISY_DEATH</outflow>
+				<non_negative/>
+			</stock>
+			<stock name="LIGHT DAISY AREA">
+				<eqn>0.0001</eqn>
+				<scale min="0" max="0.7"/>
+				<inflow>LIGHT_DAISY_BIRTH</inflow>
+				<outflow>LIGHT_DAISY_DEATH</outflow>
+				<non_negative/>
+			</stock>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="blue" background="white" font_size="9pt" isee:transparent="false"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#66CC66" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="11" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" isee:converter_size="large" page_width="594" page_height="743" isee:page_cols="3" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_family="Times" font_size="12pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_family="Times" font_size="12pt" label_side="bottom"/>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_family="Times" font_size="12pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_family="Times" font_size="12pt" label_side="bottom">
+						<shape type="circle" radius="24"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_family="Times" font_size="12pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="blue" background="white" font_size="9pt" isee:transparent="false"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<connector uid="18" angle="204.444">
+					<from>
+						<alias uid="1"/>
+					</from>
+					<to>DARK_DAISY_GROWTH</to>
+				</connector>
+				<connector uid="19" angle="221.634">
+					<from>STEFANS_CONSTANT</from>
+					<to>WORLD_TEMP</to>
+				</connector>
+				<connector uid="20" angle="208.61">
+					<from>
+						<alias uid="58"/>
+					</from>
+					<to>LIGHT_DAISY_GROWTH</to>
+				</connector>
+				<connector uid="21" angle="154.658">
+					<from>
+						<alias uid="1"/>
+					</from>
+					<to>DARK_DAISY_BIRTH</to>
+				</connector>
+				<connector uid="22" angle="322.125">
+					<from>LIGHT_FLUX</from>
+					<to>WORLD_TEMP</to>
+				</connector>
+				<connector uid="23" angle="265.711">
+					<from>DEATH_RATE</from>
+					<to>DARK_DAISY_DEATH</to>
+				</connector>
+				<connector uid="24" angle="150.255">
+					<from>
+						<alias uid="9"/>
+					</from>
+					<to>GROUND_AREA</to>
+				</connector>
+				<connector uid="25" angle="318.366">
+					<from>LOCAL_TEMP_FUNC</from>
+					<to>LIGHT_DAISY_TEMP</to>
+				</connector>
+				<connector uid="26" angle="19.9831">
+					<from>
+						<alias uid="6"/>
+					</from>
+					<to>LIGHT_DAISY_BIRTH</to>
+				</connector>
+				<connector uid="27" angle="165.964">
+					<from>GROUND_ALBEDO</from>
+					<to>WORLD_ALBEDO</to>
+				</connector>
+				<connector uid="28" angle="145.008">
+					<from>
+						<alias uid="14"/>
+					</from>
+					<to>WORLD_ALBEDO</to>
+				</connector>
+				<connector uid="29" angle="152.769">
+					<from>
+						<alias uid="58"/>
+					</from>
+					<to>LIGHT_DAISY_BIRTH</to>
+				</connector>
+				<connector uid="30" angle="175.236">
+					<from>
+						<alias uid="15"/>
+					</from>
+					<to>DARK_DAISY_TEMP</to>
+				</connector>
+				<connector uid="31" angle="184.764">
+					<from>
+						<alias uid="12"/>
+					</from>
+					<to>WORLD_ALBEDO</to>
+				</connector>
+				<connector uid="32" angle="335.556">
+					<from>
+						<alias uid="7"/>
+					</from>
+					<to>DARK_DAISY_TEMP</to>
+				</connector>
+				<connector uid="33" angle="345.964">
+					<from>
+						<alias uid="3"/>
+					</from>
+					<to>WORLD_ALBEDO</to>
+				</connector>
+				<connector uid="34" angle="218.991">
+					<from>
+						<alias uid="9"/>
+					</from>
+					<to>NO_DAISY_AREA</to>
+				</connector>
+				<connector uid="35" angle="305.218">
+					<from>
+						<alias uid="8"/>
+					</from>
+					<to>NO_DAISY_AREA</to>
+				</connector>
+				<connector uid="36" angle="127.875">
+					<from>DARK_DAISY_GROWTH</from>
+					<to>DARK_DAISY_BIRTH</to>
+				</connector>
+				<connector uid="37" angle="180">
+					<from>
+						<alias uid="2"/>
+					</from>
+					<to>LIGHT_DAISY_TEMP</to>
+				</connector>
+				<connector uid="38" angle="19.9831">
+					<from>DARK_DAISY_ALBEDO</from>
+					<to>DARK_DAISY_TEMP</to>
+				</connector>
+				<connector uid="39" angle="32.4712">
+					<from>
+						<alias uid="11"/>
+					</from>
+					<to>WORLD_ALBEDO</to>
+				</connector>
+				<connector uid="40" angle="26.5651">
+					<from>
+						<alias uid="8"/>
+					</from>
+					<to>GROUND_AREA</to>
+				</connector>
+				<connector uid="41" angle="157.751">
+					<from>LIGHT_DAISY_AREA</from>
+					<to>LIGHT_DAISY_BIRTH</to>
+				</connector>
+				<connector uid="42" angle="153.435">
+					<from>DARK_DAISY_AREA</from>
+					<to>DARK_DAISY_BIRTH</to>
+				</connector>
+				<connector uid="43" angle="85.2364">
+					<from>
+						<alias uid="17"/>
+					</from>
+					<to>DARK_DAISY_TEMP</to>
+				</connector>
+				<connector uid="44" angle="9.46232">
+					<from>
+						<alias uid="13"/>
+					</from>
+					<to>WORLD_TEMP</to>
+				</connector>
+				<connector uid="45" angle="4.76364">
+					<from>
+						<alias uid="4"/>
+					</from>
+					<to>LIGHT_DAISY_DEATH</to>
+				</connector>
+				<connector uid="46" angle="90">
+					<from>
+						<alias uid="16"/>
+					</from>
+					<to>LIGHT_DAISY_TEMP</to>
+				</connector>
+				<connector uid="47" angle="120.964">
+					<from>LIGHT_DAISY_GROWTH</from>
+					<to>LIGHT_DAISY_BIRTH</to>
+				</connector>
+				<connector uid="48" angle="19.9831">
+					<from>LIGHT_DAISY_ALBEDO</from>
+					<to>LIGHT_DAISY_TEMP</to>
+				</connector>
+				<connector uid="49" angle="125.218">
+					<from>
+						<alias uid="9"/>
+					</from>
+					<to>DAISY_AREA</to>
+				</connector>
+				<connector uid="50" angle="42.847">
+					<from>
+						<alias uid="5"/>
+					</from>
+					<to>DARK_DAISY_BIRTH</to>
+				</connector>
+				<connector uid="51" angle="333.435">
+					<from>FERTILE_AREA</from>
+					<to>NO_DAISY_AREA</to>
+				</connector>
+				<connector uid="52" angle="59.5345">
+					<from>
+						<alias uid="8"/>
+					</from>
+					<to>DAISY_AREA</to>
+				</connector>
+				<connector uid="53" angle="309.472">
+					<from>
+						<alias uid="10"/>
+					</from>
+					<to>WORLD_ALBEDO</to>
+				</connector>
+				<connector uid="54" angle="28.6105">
+					<from>LIGHT_DAISY_AREA</from>
+					<to>LIGHT_DAISY_DEATH</to>
+				</connector>
+				<connector uid="55" angle="28.6105">
+					<from>DARK_DAISY_AREA</from>
+					<to>DARK_DAISY_DEATH</to>
+				</connector>
+				<connector uid="56" angle="180">
+					<from>SUN_LUMINOSITY</from>
+					<to>WORLD_TEMP</to>
+				</connector>
+				<stacked_container uid="57" x="38" y="20" width="492" height="282" name="Graph 1">
+					<graph x="284" y="161" type="time_series" isee:points_only="false" show_grid="false" include_units_in_legend="false" plot_numbers="true" isee:label_pie_slices="false" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title="Untitled Graph" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="true" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="true" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="red" isee:keep_zero_visible="false" pen_width="1" index="0" show_y_axis="true">
+							<entity name="SUN_LUMINOSITY"/>
+						</plot>
+						<plot color="blue" isee:keep_zero_visible="false" pen_width="1" index="1" show_y_axis="true">
+							<entity name="WORLD_TEMP"/>
+						</plot>
+						<plot color="fuchsia" isee:keep_zero_visible="false" pen_width="1" index="2" show_y_axis="true">
+							<entity name="DARK_DAISY_AREA"/>
+						</plot>
+						<plot color="#008F44" isee:keep_zero_visible="false" pen_width="1" index="3" show_y_axis="true">
+							<entity name="LIGHT_DAISY_AREA"/>
+						</plot>
+					</graph>
+					<graph x="284" y="161" type="scatter" x_axis_auto_scale="true" connect_dots="false" single_point="false" show_grid="false" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title="Untitled Graph" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="true" left_axis_auto_scale="false" left_include_units="true" right_axis_multi_scale="true" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="fuchsia" isee:keep_zero_visible="false" pen_width="1" index="0" show_y_axis="true">
+							<entity name="SUN_LUMINOSITY"/>
+						</plot>
+						<plot color="blue" isee:keep_zero_visible="false" pen_width="1" index="1" show_y_axis="true">
+							<entity name="DAISY_AREA"/>
+							<scale min="0" max="1"/>
+						</plot>
+					</graph>
+					<graph x="284" y="161" type="time_series" isee:points_only="false" show_grid="false" include_units_in_legend="false" plot_numbers="true" isee:label_pie_slices="false" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" title="Untitled Graph" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="true" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="true" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="red" isee:keep_zero_visible="false" pen_width="1" index="0" show_y_axis="true">
+							<entity name="LIGHT_DAISY_TEMP"/>
+						</plot>
+						<plot color="blue" isee:keep_zero_visible="false" pen_width="1" index="1" show_y_axis="true">
+							<entity name="DARK_DAISY_TEMP"/>
+						</plot>
+					</graph>
+					<graph x="284" y="161" type="scatter" x_axis_auto_scale="true" connect_dots="false" single_point="false" show_grid="false" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" num_x_grid_lines="5" num_y_grid_lines="5" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="true" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="true" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="false" pen_width="1" index="0" show_y_axis="true">
+							<format precision="max" scale_by="1"/>
+							<entity name="WORLD_TEMP"/>
+						</plot>
+						<plot color="red" isee:keep_zero_visible="false" pen_width="1" index="1" show_y_axis="true">
+							<format precision="max" scale_by="1"/>
+							<entity name="DAISY_AREA"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<aux color="blue" label_angle="83.4291" x="228" y="554" name="DAISY AREA"/>
+				<aux color="blue" label_angle="127.951" x="986" y="648" name="DARK DAISY ALBEDO"/>
+				<flow color="blue" label_angle="117.7" x="121.75" y="364" name="DARK DAISY BIRTH">
+					<pts>
+						<pt x="43" y="364"/>
+						<pt x="200.5" y="364"/>
+					</pts>
+				</flow>
+				<flow x="306.25" y="364" name="DARK DAISY DEATH">
+					<pts>
+						<pt x="245.5" y="364"/>
+						<pt x="391" y="364"/>
+					</pts>
+				</flow>
+				<aux x="150" y="429" name="DARK DAISY GROWTH"/>
+				<aux color="blue" label_angle="37.3137" x="1072" y="616" name="DARK DAISY TEMP"/>
+				<aux color="blue" label_angle="60.3944" x="310" y="314" name="DEATH RATE"/>
+				<aux color="blue" label_side="top" x="86" y="666" name="FERTILE AREA"/>
+				<aux x="796" y="383" name="GROUND ALBEDO"/>
+				<aux color="blue" label_angle="276.571" x="232" y="604" name="GROUND AREA"/>
+				<aux color="blue" label_angle="142.686" x="999" y="463" name="LIGHT DAISY ALBEDO"/>
+				<flow color="blue" label_angle="101.346" x="118.75" y="148" name="LIGHT DAISY BIRTH">
+					<pts>
+						<pt x="46" y="148"/>
+						<pt x="191.5" y="148"/>
+					</pts>
+				</flow>
+				<flow color="blue" label_angle="14.5455" x="299.25" y="148" name="LIGHT DAISY DEATH">
+					<pts>
+						<pt x="236.5" y="148"/>
+						<pt x="386" y="148"/>
+					</pts>
+				</flow>
+				<aux x="148" y="223" name="LIGHT DAISY GROWTH"/>
+				<aux color="blue" label_angle="36.1706" x="1093" y="432" name="LIGHT DAISY TEMP"/>
+				<aux color="blue" label_angle="74.4017" x="674" y="53" name="LIGHT FLUX"/>
+				<aux color="blue" label_side="top" x="1027" y="397" name="LOCAL TEMP FUNC"/>
+				<aux color="blue" label_angle="313.983" x="232" y="666" name="NO DAISY AREA"/>
+				<aux color="blue" label_side="top" x="792" y="51" name="STEFANS CONSTANT"/>
+				<aux x="854" y="109" name="SUN LUMINOSITY"/>
+				<aux color="blue" label_angle="5.35487" x="756" y="334" name="WORLD ALBEDO"/>
+				<aux x="730" y="109" name="WORLD TEMP"/>
+				<stock color="blue" label_angle="86.0489" x="223" y="364" name="DARK DAISY AREA"/>
+				<stock color="blue" label_angle="321.638" x="214" y="148" name="LIGHT DAISY AREA"/>
+				<alias color="blue" font_style="italic" label_angle="333.414" uid="58" x="235" y="202" width="24" height="24">
+					<of>LIGHT_DAISY_TEMP</of>
+				</alias>
+				<alias color="blue" font_style="italic" label_angle="335.927" uid="1" x="247" y="417" width="24" height="24">
+					<of>DARK_DAISY_TEMP</of>
+				</alias>
+				<alias font_style="italic" uid="2" x="1158" y="420" width="24" height="24">
+					<shape type="circle" radius="24"/>
+					<of>WORLD_TEMP</of>
+				</alias>
+				<alias color="blue" font_style="italic" uid="3" x="654" y="300" width="24" height="24">
+					<of>GROUND_AREA</of>
+				</alias>
+				<alias color="blue" font_style="italic" label_angle="78.2202" uid="4" x="245" y="75" width="24" height="24">
+					<of>DEATH_RATE</of>
+				</alias>
+				<alias color="blue" font_style="italic" label_angle="260.469" uid="5" x="58" y="400" width="24" height="24">
+					<of>NO_DAISY_AREA</of>
+				</alias>
+				<alias color="blue" font_style="italic" uid="6" x="50" y="185" width="24" height="24">
+					<of>NO_DAISY_AREA</of>
+				</alias>
+				<alias color="blue" font_style="italic" label_angle="112.777" uid="7" x="988" y="567" width="24" height="24">
+					<of>LOCAL_TEMP_FUNC</of>
+				</alias>
+				<alias color="blue" font_style="italic" label_angle="154.07" uid="8" x="109.5" y="586.5" width="45" height="35">
+					<of>LIGHT_DAISY_AREA</of>
+				</alias>
+				<alias color="blue" font_style="italic" label_angle="29.4211" uid="9" x="311.5" y="586.5" width="45" height="35">
+					<of>DARK_DAISY_AREA</of>
+				</alias>
+				<alias color="blue" font_style="italic" uid="10" x="661.5" y="224.5" width="45" height="35">
+					<of>LIGHT_DAISY_AREA</of>
+				</alias>
+				<alias color="blue" font_style="italic" label_side="bottom" uid="11" x="646.5" y="371.5" width="45" height="35">
+					<of>DARK_DAISY_AREA</of>
+				</alias>
+				<alias color="blue" font_style="italic" label_angle="64.7188" uid="12" x="783" y="261" width="24" height="24">
+					<of>LIGHT_DAISY_ALBEDO</of>
+				</alias>
+				<alias color="blue" font_style="italic" uid="13" x="604" y="97" width="24" height="24">
+					<of>WORLD_ALBEDO</of>
+				</alias>
+				<alias color="blue" font_style="italic" uid="14" x="756" y="439" width="24" height="24">
+					<of>DARK_DAISY_ALBEDO</of>
+				</alias>
+				<alias font_style="italic" uid="15" x="1146" y="605" width="24" height="24">
+					<shape type="circle" radius="24"/>
+					<of>WORLD_TEMP</of>
+				</alias>
+				<alias color="blue" font_style="italic" uid="16" x="1081" y="480" width="24" height="24">
+					<of>WORLD_ALBEDO</of>
+				</alias>
+				<alias color="blue" font_style="italic" uid="17" x="1059" y="659" width="24" height="24">
+					<of>WORLD_ALBEDO</of>
+				</alias>
+			</view>
+			<view background="white" page_width="628" page_height="408" home_view="true" type="interface">
+				<style/>
+			</view>
+			<isee:templates/>
+			<isee:stories/>
+		</views>
+	</model>
+</xmile>
+
