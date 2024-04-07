@@ -294,7 +294,7 @@ table, th, td {
 
 .table5 {
     table-layout: fixed;
-    width: 30%;
+    width: 50%;
     /*border-collapse: collapse;*/
     border: 1px solid white;
 }
