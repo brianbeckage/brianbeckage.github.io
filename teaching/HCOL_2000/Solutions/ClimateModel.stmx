@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+	<header>
+		<smile version="1.0" namespace="std, isee"/>
+		<name>ClimateModel_v1l</name>
+		<uuid>1e76a520-ab3f-44b2-8e41-ceb898de2255</uuid>
+		<vendor>isee systems, inc.</vendor>
+		<product version="3.6" isee:build_number="3236" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+	</header>
+	<sim_specs isee:sim_duration="1.5" isee:run_prefix="Run" isee:simulation_delay="0.00887574" isee:restore_on_start="false" method="Euler" time_units="Years" isee:instantaneous_flows="false" isee:ignore_module_errors="false" isee:strict_units="false" isee:loop_scores="true" isee:loop_exhaustive_allowed="1000">
+		<start>1850</start>
+		<stop>2019</stop>
+		<dt reciprocal="true">4</dt>
+	</sim_specs>
+	<isee:prefs saved_runs="5" keep="false" show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="false" layer="model" isee:design="" isee:design_custom="false" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rerun_on_structure_change="false" rifp="true"/>
+	<isee:multiplayer_settings include_chat="true" allow_observers="false" advance_time_increment="1" max_advance_time_in_ms="0" model_stops_when_players_drop="false" observer_start_page="home_page" enabled="false"/>
+	<isee:time_formats default_format="Builtin">
+		<isee:time_format name="Builtin" type="adaptive"/>
+	</isee:time_formats>
+	<isee:number_format_extenders/>
+	<default_format/>
+	<data>
+		<import frequency="on_demand" isee:overwrite="true" resource="r../co2T.csv"/>
+	</data>
+	<isee:sensi_specs_list active_index="0">
+		<isee:sensi_specs name="Sensitivity" method="sobol_sequence" runs="0"/>
+	</isee:sensi_specs_list>
+	<isee:optimizer_specs_list active_index="0">
+		<isee:optimizer_specs name="Optimization" method="Powell" use_additional_starts_file="false" additional_starts="0" report_interval="1" confidence_range="0">
+			<isee:parameter name="Climate_Sensitivity" min="1" max="6"/>
+			<isee:parameter name="Anomaly_Adjustment" min="-1" max="1"/>
+			<isee:parameter name="Radiative_Forcing_Parameter" min="2" max="6"/>
+			<isee:payoff name="Payoff" action="min"/>
+		</isee:optimizer_specs>
+	</isee:optimizer_specs_list>
+	<isee:payoff_specs_list>
+		<isee:payoff_specs name="Payoff" calibration="true" recompute_weights="false">
+			<isee:payoff_element name="Simulated_Temperature_Change" weight="1" compare_name="Observed_Temperature_Change" compare_run="-2" tolerance="0" type="ls"/>
+		</isee:payoff_specs>
+	</isee:payoff_specs_list>
+	<model_units>
+		<unit name="Watts">
+			<eqn/>
+			<alias>w</alias>
+			<alias>watt</alias>
+		</unit>
+	</model_units>
+	<model>
+		<variables>
+			<aux name="Radiative\nForcing">
+				<eqn>Radiative_Forcing_Parameter*LN(CO2/Initial_CO2)</eqn>
+				<units>W/m2</units>
+			</aux>
+			<aux name="Initial CO2">
+				<eqn>284</eqn>
+				<units>ppm</units>
+			</aux>
+			<aux name="Radiative Forcing\nParameter">
+				<eqn>5.35</eqn>
+				<format precision="0.1"/>
+				<range min="3" max="6"/>
+			</aux>
+			<aux name="Climate\nSensitivity">
+				<eqn>3</eqn>
+				<format precision="0.1"/>
+				<range min="1" max="6"/>
+				<units>C/(W/m2)</units>
+			</aux>
+			<aux name="Simulated Temperature\nChange">
+				<eqn>Radiative_Forcing*Climate_Sensitivity</eqn>
+			</aux>
+			<aux name="tAnom">
+				<eqn>TIME</eqn>
+				<gf>
+					<xscale min="1850" max="2019"/>
+					<yscale min="-1" max="1"/>
+					<ypts>-0.373,-0.218,-0.228,-0.269,-0.248,-0.272,-0.358,-0.461,-0.467,-0.284,-0.343,-0.407,-0.524,-0.278,-0.494,-0.279,-0.251,-0.321,-0.238,-0.262,-0.276,-0.335,-0.227,-0.304,-0.368,-0.395,-0.384,-0.075,0.035,-0.23,-0.227,-0.2,-0.213,-0.296,-0.409,-0.389,-0.367,-0.418,-0.307,-0.171,-0.416,-0.33,-0.455,-0.473,-0.41,-0.39,-0.186,-0.206,-0.412,-0.289,-0.203,-0.259,-0.402,-0.479,-0.52,-0.377,-0.283,-0.465,-0.511,-0.522,-0.49,-0.544,-0.437,-0.424,-0.244,-0.141,-0.383,-0.468,-0.333,-0.275,-0.247,-0.187,-0.302,-0.276,-0.294,-0.215,-0.108,-0.21,-0.206,-0.35,-0.137,-0.087,-0.137,-0.273,-0.131,-0.178,-0.147,-0.026,-0.006,-0.052,0.014,0.02,-0.027,-0.004,0.144,0.025,-0.071,-0.038,-0.039,-0.074,-0.173,-0.052,0.028,0.097,-0.129,-0.19,-0.267,-0.007,0.046,0.017,-0.049,0.038,0.014,0.048,-0.223,-0.14,-0.068,-0.074,-0.113,0.032,-0.027,-0.186,-0.065,0.062,-0.214,-0.149,-0.241,0.047,-0.062,0.057,0.092,0.14,0.011,0.194,-0.014,-0.03,0.045,0.192,0.198,0.118,0.296,0.254,0.105,0.148,0.208,0.325,0.183,0.39,0.539,0.306,0.294,0.441,0.496,0.505,0.447,0.545,0.506,0.491,0.395,0.506,0.56,0.425,0.47,0.514,0.579,0.763,0.797,0.677,0.597,0.736</ypts>
+				</gf>
+			</aux>
+			<aux name="CO2">
+				<eqn>TIME</eqn>
+				<gf>
+					<xscale min="1850" max="2019"/>
+					<yscale min="250" max="400"/>
+					<ypts>284.3169999,284.4509998,284.5979998,284.7309998,284.8459998,284.9409998,285.0489998,285.2039998,285.3689998,285.5449998,285.7389997,285.9329997,286.0999997,286.2709997,286.4419997,286.6139996,286.7809996,286.9549996,287.1049996,287.2249996,287.3549996,287.4939995,287.6639995,287.8599995,288.0609995,288.2909994,288.5199994,288.7519994,288.9929994,289.2209994,289.4699993,289.7369993,290.0189993,290.2629992,290.5119992,290.7969992,291.0999992,291.4139991,291.7629991,292.1129991,292.457999,292.815999,293.1669989,293.4769989,293.7909989,294.0789989,294.3649988,294.6459988,294.9539987,295.2999986,295.6749984,296.006998,296.3249974,296.6539968,296.9539963,297.2889957,297.6619951,298.0979945,298.517994,298.9359935,299.3769929,299.8289923,300.3529917,300.9099911,301.4189908,301.9369903,302.4849897,303.0109891,303.4489886,303.8139883,304.2459877,304.5999873,304.9449868,305.2709861,305.6299855,305.812985,305.9539845,306.1769839,306.3289833,306.4949827,306.6199824,306.8219821,307.0929818,307.4019813,307.7849806,308.22698,309.0119793,309.7639786,310.2939782,310.8509776,311.3569769,311.8109763,312.1719757,312.3899752,312.4129748,312.3849746,312.389974,312.4859732,312.5209725,312.6319721,312.8209713,313.0139706,313.34197,313.7299694,314.0949688,314.414968,314.6979672,314.9919665,315.3449659,315.8069651,316.6249644,317.2989638,318.0439631,318.6499622,319.3329614,319.8159605,320.8799597,321.4799589,322.388958,323.250957,324.7829559,325.399955,327.3489541,329.9089531,330.7559525,330.826952,331.544951,333.3529501,335.0099494,336.6049484,338.7049479,340.0589478,340.6439474,342.2659473,344.0079495,345.4589538,346.9029481,348.7749474,351.2759329,352.8939214,354.0729301,355.3529349,356.2289489,356.9249589,358.2539622,360.2389564,362.0049615,363.2519618,365.932958,367.8449748,369.12498,370.6729901,372.8349943,375.410995,376.9870025,378.907005,381.010007,382.6030247,384.7390186,386.280019,388.7170293,390.9440147,393.0159927,395.7249793,397.5469769,401.01,404.41,406.76,408.72,411.66</ypts>
+				</gf>
+			</aux>
+			<aux name="Anomaly Adjustment">
+				<eqn>0</eqn>
+				<range min="-1" max="1"/>
+			</aux>
+			<aux name="Observed Temperature\nChange">
+				<eqn>tAnom+Anomaly_Adjustment</eqn>
+			</aux>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="blue" background="white" font_size="9pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#66CC66" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:dual_slider color="black" background="white" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<isee:dropdown_input color="black" background="white" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="11" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true" corner_radius="1"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_x="134.444" isee:scroll_y="217.778" zoom="180" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</flow>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="blue" background="white" font_size="9pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<aux label_side="right" label_angle="315" x="367.333" y="232.333" name="Radiative\nForcing"/>
+				<aux x="357.5" y="148.333" name="Initial CO2"/>
+				<connector uid="1" angle="309.668">
+					<from>Initial_CO2</from>
+					<to>Radiative_Forcing</to>
+				</connector>
+				<aux label_side="right" label_angle="45" x="448.75" y="183.333" name="Radiative Forcing\nParameter"/>
+				<connector uid="3" angle="215.348">
+					<from>Radiative_Forcing_Parameter</from>
+					<to>Radiative_Forcing</to>
+				</connector>
+				<aux x="524.667" y="261.25" name="Climate\nSensitivity"/>
+				<aux x="324.583" y="297.917" name="Simulated Temperature\nChange"/>
+				<connector uid="4" angle="240.21">
+					<from>Radiative_Forcing</from>
+					<to>Simulated_Temperature_Change</to>
+				</connector>
+				<connector uid="5" angle="195.815">
+					<from>Climate_Sensitivity</from>
+					<to>Simulated_Temperature_Change</to>
+				</connector>
+				<aux x="209.167" y="219.167" name="tAnom"/>
+				<aux x="191.167" y="120.833" name="CO2"/>
+				<connector uid="6" angle="348.571">
+					<from>CO2</from>
+					<to>Radiative_Forcing</to>
+				</connector>
+				<stacked_container uid="7" x="577.5" y="436.25">
+					<graph width="350" height="250" type="time_series" show_grid="true" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="2" num_y_grid_lines="5" num_x_labels="6" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
+							<entity name="Simulated_Temperature_Change"/>
+						</plot>
+						<plot color="red" isee:keep_zero_visible="true" pen_width="1" index="1" show_y_axis="true">
+							<entity name="Observed_Temperature_Change"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<aux label_side="top" x="124.167" y="275" name="Anomaly Adjustment"/>
+				<aux x="209.167" y="279.917" name="Observed Temperature\nChange"/>
+				<connector uid="9" angle="264.359">
+					<from>tAnom</from>
+					<to>Observed_Temperature_Change</to>
+				</connector>
+				<connector uid="10" angle="356.689">
+					<from>Anomaly_Adjustment</from>
+					<to>Observed_Temperature_Change</to>
+				</connector>
+				<text_box uid="11" x="629.167" y="110.916" width="356.667" height="74.8333">The IPCC Fifth Assessment Report (AR5) stated that &quot;there is high confidence that ECS (equilibrium climate sensitivity) is extremely unlikely to be less than 1 °C and medium confidence that the ECS is likely between 1.5 °C and 4.5 °C and very unlikely greater than 6 °C&quot;.</text_box>
+				<text_box uid="12" x="629.167" y="185.75" width="260" height="58">The IPCC literature assessment estimates that the transient climate response (TCR) likely lies between 1 °C (1.8 °F) and 2.5 °C (4.5 °F).</text_box>
+				<text_box uid="13" x="629.167" y="241" width="260" height="58">https://en.wikipedia.org/wiki/Climate_sensitivity</text_box>
+			</view>
+		</views>
+	</model>
+	<isee:controls>
+		<isee:control priority="interactive" name="Anomaly_Adjustment" value="0.400728187334459"/>
+		<isee:control priority="interactive" name="Climate_Sensitivity" value="1.19944390977832"/>
+		<isee:control priority="interactive" name="Radiative_Forcing_Parameter" value="2.38409618245364"/>
+	</isee:controls>
+</xmile>
+
