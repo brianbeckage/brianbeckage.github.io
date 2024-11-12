@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="497d3d95-ec7f-4b28-9079-fa69f721e47f" name="Changes" comment="" />
+    <list default="true" id="497d3d95-ec7f-4b28-9079-fa69f721e47f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/teaching/HCOL_2000/HCOL2000_schedule.html" beforeDir="false" afterPath="$PROJECT_DIR$/teaching/HCOL_2000/HCOL2000_schedule.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -186,6 +188,7 @@
       <workItem from="1730775040257" duration="187000" />
       <workItem from="1730818847400" duration="751000" />
       <workItem from="1731333658274" duration="4312000" />
+      <workItem from="1731423874179" duration="65000" />
     </task>
     <servers />
   </component>
