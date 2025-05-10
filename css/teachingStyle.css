@@ -213,7 +213,35 @@ table, th, td {
   background-color: #333333;
 }
 
-.table3 tr:hover {background-color: gray;}
+
+/* Change this line */
+.table3 > tbody > tr:nth-child(even) {
+  background-color: #333333;
+}
+
+/* Or alternatively this version */
+/*.table3 tr:nth-child(even) > td {
+  background-color: #333333;
+}*/
+
+/* And add this to ensure nested tables aren't affected */
+.nested-table tr:nth-child(even) {
+  background-color: inherit !important;
+}
+
+
+/* Apply hover only to the main table rows */
+.table3 > tbody > tr:hover {
+  background-color: gray;
+}
+
+/*.table3 tr:hover {background-color: gray;}*/
+
+/* Add these rules to your CSS */
+.table3 tr:hover td .nested-table tr {
+    background-color: gray !important;
+}
+
 
 .table3 {
     table-layout: auto;
@@ -234,41 +262,33 @@ table, th, td {
     text-align:center;
     border:1px solid white; }
 
-/*.table3 thead th:nth-child(1) {*/
-/*  width: 5%;*/
-/*}*/
 
-/*.table3 thead th:nth-child(2) {*/
-/*  width: 6%;*/
-/*}*/
+/* Styles for the nested table - FIXED */
+.nested-table {
+    width: 100%;
+    /*background-color: #f2f2f2;*/
+    border: none !important;
+    border-collapse: collapse;
+}
 
-/*.table3 thead th:nth-child(3) {*/
-/*  width: 5%;*/
-/*}*/
+.nested-table tr {
+    border: none !important;
+}
 
-/*.table3 thead th:nth-child(4) {*/
-/*  width: 14%;*/
-/*}*/
+.nested-table td {
+    border: none !important;
+    padding: 4px;
+}
 
-/*.table3 thead th:nth-child(5) {*/
-/*  width: 14%;*/
-/*}*/
+.nested-row {
+    border: none !important;
+    /*background-color: #ddd;*/
+}
 
-/*.table3 thead th:nth-child(6) {*/
-/*  width: 14%;*/
-/*}*/
-
-/*.table3 thead th:nth-child(7) {*/
-/*  width: 14%;*/
-/*}*/
-
-/*.table3 thead th:nth-child(8) {*/
-/*  width: 14%;*/
-/*}*/
-
-/*.table3 thead th:nth-child(9) {*/
-/*  width: 14%;*/
-/*}*/
+/* Optional: If you want to disable hover effects on nested table rows */
+/*.nested-table tr:hover {
+    background-color: inherit !important;
+}*/
 
 
 
