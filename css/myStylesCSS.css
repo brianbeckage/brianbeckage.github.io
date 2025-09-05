@@ -36,6 +36,17 @@ body {
   width: 150px;
 }
 
+.gallery {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.gallery img {
+  width: 150px;
+  display: block;
+  cursor: pointer;
+}
+
 /* Headers Bar ******************************************************/
 
 .headerLab {
