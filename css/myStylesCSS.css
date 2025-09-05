@@ -28,6 +28,14 @@ body {
   width: 300px;
 }
 
+.thumb-container {
+  text-align: center;
+}
+.thumb-container img {
+  display: inline-block; /* ensures the image remains inline for centering */
+  width: 150px;
+}
+
 /* Headers Bar ******************************************************/
 
 .headerLab {
