@@ -2,23 +2,38 @@
 <xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
 	<header>
 		<smile version="1.0" namespace="std, isee"/>
-		<name>Population&amp;Resource_b&amp;d</name>
+		<name>SimpleCollapseModel</name>
 		<uuid>fe532d7f-1321-4a0f-b927-56ec4397b1c2</uuid>
 		<vendor>isee systems, inc.</vendor>
-		<product version="3.6" isee:build_number="3236" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+		<product version="4.1" isee:build_number="3751" isee:saved_by_v1="true" lang="en">Stella Architect</product>
 	</header>
+	<ai_information>
+		<status verified="false"/>
+	</ai_information>
 	<sim_specs isee:sim_duration="1.485" isee:run_prefix="Run" isee:simulation_delay="0.015" isee:restore_on_start="false" method="Euler" time_units="Years" isee:instantaneous_flows="false" isee:ignore_module_errors="false" isee:strict_units="false" isee:loop_scores="true" isee:loop_exhaustive_allowed="1000">
 		<start>1</start>
 		<stop>100</stop>
 		<dt>0.25</dt>
 	</sim_specs>
-	<isee:prefs saved_runs="5" keep="false" show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="false" layer="model" isee:design="" isee:design_custom="false" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rerun_on_structure_change="false" rifp="true"/>
+	<isee:prefs saved_runs="5" keep="false" show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="false" layer="model" isee:design="" isee:design_custom="false" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rifp="true"/>
 	<isee:multiplayer_settings include_chat="true" allow_observers="false" advance_time_increment="1" max_advance_time_in_ms="0" model_stops_when_players_drop="false" observer_start_page="home_page" enabled="false"/>
 	<isee:time_formats default_format="Builtin">
 		<isee:time_format name="Builtin" type="adaptive"/>
 	</isee:time_formats>
 	<isee:number_format_extenders/>
 	<default_format/>
+	<isee:sensi_specs_list active_index="0">
+		<isee:sensi_specs name="Sensitivity" method="sobol_sequence" runs="25">
+			<isee:variable starting_value="0" ending_value="0.2" type="incremental" min="0" max="0.2" seed="12345" name="Birth_rate" num_samples="5"/>
+			<isee:variable starting_value="0" ending_value="0.1" type="incremental" min="0" max="0.1" seed="12345" name="Consumption" num_samples="5"/>
+		</isee:sensi_specs>
+	</isee:sensi_specs_list>
+	<isee:optimizer_specs_list active_index="0">
+		<isee:optimizer_specs name="Optimization" method="Powell" use_additional_starts_file="false" additional_starts="0" report_interval="1" confidence_range="0"/>
+	</isee:optimizer_specs_list>
+	<isee:payoff_specs_list>
+		<isee:payoff_specs name="Payoff"/>
+	</isee:payoff_specs_list>
 	<model_units>
 		<unit name="People">
 			<eqn/>
@@ -37,13 +52,12 @@
 				<eqn>Initial_Population</eqn>
 				<inflow>births</inflow>
 				<outflow>deaths</outflow>
-				<non_negative/>
 				<units>People</units>
 			</stock>
 			<aux name="Consumption">
 				<eqn>0.01</eqn>
 				<range min="0" max="0.1"/>
-				<units>unit resource/People/Year</units>
+				<units>unit resource/People/Years</units>
 			</aux>
 			<aux name="Initial Population">
 				<eqn>100</eqn>
@@ -54,7 +68,6 @@
 				<eqn>10</eqn>
 				<inflow>Regeneration</inflow>
 				<outflow>extraction</outflow>
-				<non_negative/>
 				<units>unit resource</units>
 			</stock>
 			<flow name="Regeneration">
@@ -78,7 +91,7 @@
 				<units>People/Years</units>
 			</flow>
 			<aux name="death rate">
-				<eqn>Base_death_rate*SAFEDIV(Consumption, resource_per_person, INF)</eqn>
+				<eqn>Base_death_rate*SAFEDIV(Consumption*&quot;&apos;Year&apos;_to_fix_units&quot;, resource_per_person, INF)</eqn>
 				<range min="0" max="1"/>
 				<units>People/People/Year</units>
 			</aux>
@@ -95,6 +108,10 @@
 				<eqn>0.01</eqn>
 				<range min="0" max="0.1"/>
 				<units>People/People/Year</units>
+			</aux>
+			<aux name="'Year' to fix\nunits">
+				<eqn>1</eqn>
+				<units>Years</units>
 			</aux>
 		</variables>
 		<views>
@@ -122,7 +139,7 @@
 				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
 				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
 				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
-				<slider color="#66CC66" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<slider color="#0075FF" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
 				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
 				<isee:dual_slider color="black" background="white" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
 				<isee:sim_speed_slider color="black" background="white"/>
@@ -145,7 +162,7 @@
 				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
 				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
 			</style>
-			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_x="3.33333" isee:scroll_y="90.8333" zoom="120" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_x="203.333" isee:scroll_y="103.333" zoom="120" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
 				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
 					<stock color="blue" background="white" font_color="blue" font_size="12pt" label_side="top">
 						<shape type="rectangle" width="45" height="35"/>
@@ -186,7 +203,9 @@
 				</style>
 				<stock font_size="14pt" label_side="top" x="300" y="183.125" name="Population"/>
 				<aux x="564.792" y="392.5" name="Consumption"/>
-				<aux x="300" y="81.25" name="Initial Population"/>
+				<aux x="300" y="81.25" name="Initial Population">
+					<shape type="circle" radius="18"/>
+				</aux>
 				<stacked_container uid="1" x="820" y="215.25">
 					<graph width="350" height="250" type="time_series" show_grid="true" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="4" num_y_grid_lines="4" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
 						<plot color="blue" isee:keep_zero_visible="false" pen_width="1" index="0" show_y_axis="true">
@@ -273,7 +292,7 @@
 					<from>Base_death_rate</from>
 					<to>death_rate</to>
 				</connector>
-				<stacked_container uid="13" x="841.25" y="526.5">
+				<stacked_container uid="13" x="1185.66" y="215.25">
 					<graph width="350" height="250" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
 						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
 							<entity name="Regeneration"/>
@@ -283,6 +302,26 @@
 						</plot>
 					</graph>
 				</stacked_container>
+				<stacked_container uid="14" x="648.617" y="358.001" width="348.984" height="249.382">
+					<graph width="348.984" height="249.382" comparative="true" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
+							<entity name="Population"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<stacked_container uid="15" x="1191.5" y="487.424">
+					<table width="350" height="250" comparative="true">
+						<item type="time"/>
+						<item>
+							<entity name="Population"/>
+						</item>
+					</table>
+				</stacked_container>
+				<aux x="589.141" y="266.695" name="'Year' to fix\nunits"/>
+				<connector uid="16" angle="159.366">
+					<from>&quot;&apos;Year&apos;_to_fix_units&quot;</from>
+					<to>death_rate</to>
+				</connector>
 			</view>
 		</views>
 	</model>
