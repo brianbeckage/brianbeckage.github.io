@@ -2,18 +2,18 @@
 <xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
 	<header>
 		<smile version="1.0" namespace="std, isee"/>
-		<name>ClimateModel</name>
-		<uuid>1e76a520-ab3f-44b2-8e41-ceb898de2255</uuid>
+		<name>SimpleCollapseModel</name>
+		<uuid>fe532d7f-1321-4a0f-b927-56ec4397b1c2</uuid>
 		<vendor>isee systems, inc.</vendor>
 		<product version="4.1" isee:build_number="3751" isee:saved_by_v1="true" lang="en">Stella Architect</product>
 	</header>
 	<ai_information>
 		<status verified="false"/>
 	</ai_information>
-	<sim_specs isee:sim_duration="1.5" isee:run_prefix="Run" isee:simulation_delay="0.00887574" isee:restore_on_start="false" method="Euler" time_units="Years" isee:instantaneous_flows="false" isee:ignore_module_errors="false" isee:strict_units="false" isee:loop_scores="true" isee:loop_exhaustive_allowed="1000">
-		<start>1850</start>
-		<stop>2019</stop>
-		<dt reciprocal="true">4</dt>
+	<sim_specs isee:sim_duration="1.485" isee:run_prefix="Run" isee:simulation_delay="0.015" isee:restore_on_start="false" method="Euler" time_units="Years" isee:instantaneous_flows="false" isee:ignore_module_errors="false" isee:strict_units="false" isee:loop_scores="true" isee:loop_exhaustive_allowed="1000">
+		<start>1</start>
+		<stop>100</stop>
+		<dt>0.25</dt>
 	</sim_specs>
 	<isee:prefs saved_runs="5" keep="false" show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="false" layer="model" isee:design="" isee:design_custom="false" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rifp="true"/>
 	<isee:multiplayer_settings include_chat="true" allow_observers="false" advance_time_increment="1" max_advance_time_in_ms="0" model_stops_when_players_drop="false" observer_start_page="home_page" enabled="false"/>
@@ -22,78 +22,98 @@
 	</isee:time_formats>
 	<isee:number_format_extenders/>
 	<default_format/>
-	<data>
-		<import enabled="false" frequency="on_demand" isee:overwrite="true" resource="r../co2T.csv"/>
-	</data>
 	<isee:sensi_specs_list active_index="0">
-		<isee:sensi_specs name="Sensitivity" method="sobol_sequence" runs="0"/>
+		<isee:sensi_specs name="Sensitivity" method="sobol_sequence" runs="25">
+			<isee:variable starting_value="0" ending_value="0.2" type="incremental" min="0" max="0.2" seed="12345" name="Birth_rate" num_samples="5"/>
+			<isee:variable starting_value="0" ending_value="0.1" type="incremental" min="0" max="0.1" seed="12345" name="Consumption" num_samples="5"/>
+		</isee:sensi_specs>
 	</isee:sensi_specs_list>
 	<isee:optimizer_specs_list active_index="0">
-		<isee:optimizer_specs name="Optimization" method="Powell" use_additional_starts_file="false" additional_starts="0" report_interval="1" confidence_range="0">
-			<isee:parameter name="Climate_Sensitivity" min="1" max="6"/>
-			<isee:parameter name="Anomaly_Adjustment" min="-1" max="1"/>
-			<isee:parameter name="Radiative_Forcing_Parameter" min="2" max="6"/>
-			<isee:payoff name="Payoff" action="min"/>
-		</isee:optimizer_specs>
+		<isee:optimizer_specs name="Optimization" method="Powell" use_additional_starts_file="false" additional_starts="0" report_interval="1" confidence_range="0"/>
 	</isee:optimizer_specs_list>
 	<isee:payoff_specs_list>
-		<isee:payoff_specs name="Payoff" calibration="true" recompute_weights="false">
-			<isee:payoff_element name="Simulated_Temperature_Change" weight="1" compare_name="Observed_Temperature_Change" compare_run="-2" tolerance="0" type="ls"/>
-		</isee:payoff_specs>
+		<isee:payoff_specs name="Payoff"/>
 	</isee:payoff_specs_list>
 	<model_units>
-		<unit name="Watts">
+		<unit name="People">
 			<eqn/>
-			<alias>w</alias>
-			<alias>watt</alias>
+			<alias>person</alias>
+			<alias>persons</alias>
+		</unit>
+		<unit name="Years">
+			<eqn/>
+			<alias>yr</alias>
+			<alias>year</alias>
 		</unit>
 	</model_units>
 	<model>
 		<variables>
-			<aux name="Radiative\nForcing">
-				<eqn>Radiative_Forcing_Parameter*LN(CO2/Initial_CO2)</eqn>
-				<units>W/m2</units>
+			<stock name="Population">
+				<eqn>Initial_Population</eqn>
+				<inflow>births</inflow>
+				<outflow>deaths</outflow>
+				<non_negative/>
+				<units>People</units>
+			</stock>
+			<aux name="Consumption">
+				<eqn>0.1</eqn>
+				<range min="0" max="0.1"/>
+				<units>unit resource/People/Years</units>
 			</aux>
-			<aux name="Initial CO2">
-				<eqn>284</eqn>
-				<units>ppm</units>
+			<aux name="Initial Population">
+				<eqn>100</eqn>
+				<range min="1" max="200"/>
+				<units>People</units>
 			</aux>
-			<aux name="Radiative Forcing\nParameter">
-				<eqn>5.35</eqn>
-				<format precision="0.1"/>
-				<range min="3" max="6"/>
+			<stock name="Resource">
+				<eqn>10</eqn>
+				<inflow>Regeneration</inflow>
+				<outflow>extraction</outflow>
+				<non_negative/>
+				<units>unit resource</units>
+			</stock>
+			<flow name="Regeneration">
+				<eqn>1</eqn>
+				<non_negative/>
+				<units>unit resource/Years</units>
+			</flow>
+			<flow name="extraction">
+				<eqn>Population*Consumption</eqn>
+				<non_negative/>
+				<units>unit resource/Years</units>
+			</flow>
+			<flow name="births">
+				<eqn>Birth_rate*Population</eqn>
+				<non_negative/>
+				<units>People/Years</units>
+			</flow>
+			<flow name="deaths">
+				<eqn>Population*death_rate</eqn>
+				<non_negative/>
+				<units>People/Years</units>
+			</flow>
+			<aux name="death rate">
+				<eqn>Base_death_rate*SAFEDIV(Consumption*&quot;&apos;Year&apos;_to_fix_units&quot;, resource_per_person, INF)</eqn>
+				<range min="0" max="1"/>
+				<units>People/People/Year</units>
 			</aux>
-			<aux name="Climate\nSensitivity">
-				<eqn>3</eqn>
-				<format precision="0.1"/>
-				<range min="1" max="6"/>
-				<units>C/(W/m2)</units>
+			<aux name="Birth rate">
+				<eqn>0.2</eqn>
+				<range min="0" max="0.1"/>
+				<units>People/People/Year</units>
 			</aux>
-			<aux name="Simulated Temperature\nChange">
-				<eqn>Radiative_Forcing*Climate_Sensitivity</eqn>
+			<aux name="resource per person">
+				<eqn>SAFEDIV(Resource, Population, INF)</eqn>
+				<units>unit resource/People</units>
 			</aux>
-			<aux name="tAnom">
-				<eqn>TIME</eqn>
-				<gf>
-					<xscale min="1850" max="2019"/>
-					<yscale min="-1" max="1"/>
-					<ypts>-0.373,-0.218,-0.228,-0.269,-0.248,-0.272,-0.358,-0.461,-0.467,-0.284,-0.343,-0.407,-0.524,-0.278,-0.494,-0.279,-0.251,-0.321,-0.238,-0.262,-0.276,-0.335,-0.227,-0.304,-0.368,-0.395,-0.384,-0.075,0.035,-0.23,-0.227,-0.2,-0.213,-0.296,-0.409,-0.389,-0.367,-0.418,-0.307,-0.171,-0.416,-0.33,-0.455,-0.473,-0.41,-0.39,-0.186,-0.206,-0.412,-0.289,-0.203,-0.259,-0.402,-0.479,-0.52,-0.377,-0.283,-0.465,-0.511,-0.522,-0.49,-0.544,-0.437,-0.424,-0.244,-0.141,-0.383,-0.468,-0.333,-0.275,-0.247,-0.187,-0.302,-0.276,-0.294,-0.215,-0.108,-0.21,-0.206,-0.35,-0.137,-0.087,-0.137,-0.273,-0.131,-0.178,-0.147,-0.026,-0.006,-0.052,0.014,0.02,-0.027,-0.004,0.144,0.025,-0.071,-0.038,-0.039,-0.074,-0.173,-0.052,0.028,0.097,-0.129,-0.19,-0.267,-0.007,0.046,0.017,-0.049,0.038,0.014,0.048,-0.223,-0.14,-0.068,-0.074,-0.113,0.032,-0.027,-0.186,-0.065,0.062,-0.214,-0.149,-0.241,0.047,-0.062,0.057,0.092,0.14,0.011,0.194,-0.014,-0.03,0.045,0.192,0.198,0.118,0.296,0.254,0.105,0.148,0.208,0.325,0.183,0.39,0.539,0.306,0.294,0.441,0.496,0.505,0.447,0.545,0.506,0.491,0.395,0.506,0.56,0.425,0.47,0.514,0.579,0.763,0.797,0.677,0.597,0.736</ypts>
-				</gf>
+			<aux name="Base death rate">
+				<eqn>0.01</eqn>
+				<range min="0" max="0.1"/>
+				<units>People/People/Year</units>
 			</aux>
-			<aux name="CO2">
-				<eqn>TIME</eqn>
-				<gf>
-					<xscale min="1850" max="2019"/>
-					<yscale min="250" max="400"/>
-					<ypts>284.3169999,284.4509998,284.5979998,284.7309998,284.8459998,284.9409998,285.0489998,285.2039998,285.3689998,285.5449998,285.7389997,285.9329997,286.0999997,286.2709997,286.4419997,286.6139996,286.7809996,286.9549996,287.1049996,287.2249996,287.3549996,287.4939995,287.6639995,287.8599995,288.0609995,288.2909994,288.5199994,288.7519994,288.9929994,289.2209994,289.4699993,289.7369993,290.0189993,290.2629992,290.5119992,290.7969992,291.0999992,291.4139991,291.7629991,292.1129991,292.457999,292.815999,293.1669989,293.4769989,293.7909989,294.0789989,294.3649988,294.6459988,294.9539987,295.2999986,295.6749984,296.006998,296.3249974,296.6539968,296.9539963,297.2889957,297.6619951,298.0979945,298.517994,298.9359935,299.3769929,299.8289923,300.3529917,300.9099911,301.4189908,301.9369903,302.4849897,303.0109891,303.4489886,303.8139883,304.2459877,304.5999873,304.9449868,305.2709861,305.6299855,305.812985,305.9539845,306.1769839,306.3289833,306.4949827,306.6199824,306.8219821,307.0929818,307.4019813,307.7849806,308.22698,309.0119793,309.7639786,310.2939782,310.8509776,311.3569769,311.8109763,312.1719757,312.3899752,312.4129748,312.3849746,312.389974,312.4859732,312.5209725,312.6319721,312.8209713,313.0139706,313.34197,313.7299694,314.0949688,314.414968,314.6979672,314.9919665,315.3449659,315.8069651,316.6249644,317.2989638,318.0439631,318.6499622,319.3329614,319.8159605,320.8799597,321.4799589,322.388958,323.250957,324.7829559,325.399955,327.3489541,329.9089531,330.7559525,330.826952,331.544951,333.3529501,335.0099494,336.6049484,338.7049479,340.0589478,340.6439474,342.2659473,344.0079495,345.4589538,346.9029481,348.7749474,351.2759329,352.8939214,354.0729301,355.3529349,356.2289489,356.9249589,358.2539622,360.2389564,362.0049615,363.2519618,365.932958,367.8449748,369.12498,370.6729901,372.8349943,375.410995,376.9870025,378.907005,381.010007,382.6030247,384.7390186,386.280019,388.7170293,390.9440147,393.0159927,395.7249793,397.5469769,401.01,404.41,406.76,408.72,411.66</ypts>
-				</gf>
-			</aux>
-			<aux name="Anomaly Adjustment">
-				<eqn>0</eqn>
-				<range min="-1" max="1"/>
-			</aux>
-			<aux name="Observed Temperature\nChange">
-				<eqn>tAnom+Anomaly_Adjustment</eqn>
+			<aux name="'Year' to fix\nunits">
+				<eqn>1</eqn>
+				<units>Years</units>
 			</aux>
 		</variables>
 		<views>
@@ -144,22 +164,22 @@
 				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
 				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
 			</style>
-			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_y="100.556" zoom="180" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_x="33.3333" isee:scroll_y="131.667" zoom="120" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
 				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
-					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+					<stock color="blue" background="white" font_color="blue" font_size="12pt" label_side="top">
 						<shape type="rectangle" width="45" height="35"/>
 					</stock>
-					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+					<flow color="blue" background="white" font_color="blue" font_size="12pt" label_side="bottom">
 						<shape type="circle" radius="18"/>
 					</flow>
-					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
-					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="12pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="12pt" label_side="top">
 						<shape type="rectangle" width="55" height="45"/>
 					</module>
-					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+					<aux color="blue" background="white" font_color="blue" font_size="12pt" label_side="bottom">
 						<shape type="circle" radius="18"/>
 					</aux>
-					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<group color="red" background="white" font_color="red" font_size="12pt"/>
 					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
 					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
 					<isee:loop_indicator color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
@@ -183,63 +203,137 @@
 					</graph>
 					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
 				</style>
-				<aux label_side="right" label_angle="315" x="367.333" y="232.333" name="Radiative\nForcing"/>
-				<aux x="357.5" y="148.333" name="Initial CO2"/>
-				<connector uid="1" angle="309.668">
-					<from>Initial_CO2</from>
-					<to>Radiative_Forcing</to>
-				</connector>
-				<aux label_side="right" label_angle="45" x="448.75" y="183.333" name="Radiative Forcing\nParameter"/>
-				<connector uid="3" angle="215.348">
-					<from>Radiative_Forcing_Parameter</from>
-					<to>Radiative_Forcing</to>
-				</connector>
-				<aux x="524.667" y="261.25" name="Climate\nSensitivity"/>
-				<aux x="324.583" y="297.917" name="Simulated Temperature\nChange"/>
-				<connector uid="4" angle="240.21">
-					<from>Radiative_Forcing</from>
-					<to>Simulated_Temperature_Change</to>
-				</connector>
-				<connector uid="5" angle="195.815">
-					<from>Climate_Sensitivity</from>
-					<to>Simulated_Temperature_Change</to>
-				</connector>
-				<aux x="209.167" y="219.167" name="tAnom"/>
-				<aux x="191.167" y="120.833" name="CO2"/>
-				<connector uid="6" angle="348.571">
-					<from>CO2</from>
-					<to>Radiative_Forcing</to>
-				</connector>
-				<stacked_container uid="7" x="577.5" y="436.25">
-					<graph width="350" height="250" type="time_series" show_grid="true" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="2" num_y_grid_lines="5" num_x_labels="6" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
-						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
-							<entity name="Simulated_Temperature_Change"/>
+				<stock font_size="14pt" label_side="top" x="300" y="183.125" name="Population"/>
+				<aux x="564.792" y="392.5" name="Consumption"/>
+				<aux x="300" y="81.25" name="Initial Population">
+					<shape type="circle" radius="18"/>
+				</aux>
+				<stacked_container uid="1" x="820" y="215.25">
+					<graph width="350" height="250" type="time_series" show_grid="true" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="4" num_y_grid_lines="4" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="false" pen_width="1" index="0" show_y_axis="true">
+							<entity name="Population"/>
 						</plot>
-						<plot color="red" isee:keep_zero_visible="true" pen_width="1" index="1" show_y_axis="true">
-							<entity name="Observed_Temperature_Change"/>
+						<plot color="red" pen_style="dot_dashed" isee:keep_zero_visible="true" pen_width="1" index="1" show_y_axis="true">
+							<entity name="Resource"/>
+						</plot>
+						<plot color="fuchsia" pen_style="dotted" isee:keep_zero_visible="true" pen_width="1" index="2" show_y_axis="true">
+							<entity name="extraction"/>
 						</plot>
 					</graph>
 				</stacked_container>
-				<aux label_side="top" x="124.167" y="275" name="Anomaly Adjustment"/>
-				<aux x="209.167" y="279.917" name="Observed Temperature\nChange"/>
-				<connector uid="9" angle="264.359">
-					<from>tAnom</from>
-					<to>Observed_Temperature_Change</to>
+				<stock x="286.5" y="402.5" name="Resource"/>
+				<flow x="204.813" y="401.875" name="Regeneration">
+					<pts>
+						<pt x="145.625" y="401.875"/>
+						<pt x="264" y="401.875"/>
+					</pts>
+				</flow>
+				<flow x="364.688" y="402.5" name="extraction">
+					<pts>
+						<pt x="309" y="402.5"/>
+						<pt x="444.375" y="402.5"/>
+					</pts>
+				</flow>
+				<connector uid="2" angle="286.429">
+					<from>Population</from>
+					<to>extraction</to>
 				</connector>
-				<connector uid="10" angle="356.689">
-					<from>Anomaly_Adjustment</from>
-					<to>Observed_Temperature_Change</to>
+				<connector uid="3" angle="141.843">
+					<from>Consumption</from>
+					<to>extraction</to>
 				</connector>
-				<text_box uid="11" x="629.167" y="110.916" width="356.667" height="74.8333">The IPCC Fifth Assessment Report (AR5) stated that &quot;there is high confidence that ECS (equilibrium climate sensitivity) is extremely unlikely to be less than 1 °C and medium confidence that the ECS is likely between 1.5 °C and 4.5 °C and very unlikely greater than 6 °C&quot;.</text_box>
-				<text_box uid="12" x="629.167" y="185.75" width="260" height="58">The IPCC literature assessment estimates that the transient climate response (TCR) likely lies between 1 °C (1.8 °F) and 2.5 °C (4.5 °F).</text_box>
-				<text_box uid="13" x="629.167" y="241" width="260" height="58">https://en.wikipedia.org/wiki/Climate_sensitivity</text_box>
+				<flow x="211.563" y="188.75" name="births">
+					<pts>
+						<pt x="145.625" y="188.75"/>
+						<pt x="277.5" y="188.75"/>
+					</pts>
+				</flow>
+				<flow x="383.625" y="188.75" name="deaths">
+					<pts>
+						<pt x="322.5" y="188.75"/>
+						<pt x="468.75" y="188.75"/>
+					</pts>
+				</flow>
+				<connector uid="4" angle="21.2864">
+					<from>Population</from>
+					<to>deaths</to>
+				</connector>
+				<aux x="459.5" y="257.5" name="death rate"/>
+				<connector uid="5" angle="116.98">
+					<from>death_rate</from>
+					<to>deaths</to>
+				</connector>
+				<aux x="131.25" y="252.625" name="Birth rate"/>
+				<connector uid="6" angle="38.4963">
+					<from>Birth_rate</from>
+					<to>births</to>
+				</connector>
+				<connector uid="7" angle="140.123">
+					<from>Population</from>
+					<to>births</to>
+				</connector>
+				<connector uid="8" angle="40.4448">
+					<from>Resource</from>
+					<to>resource_per_person</to>
+				</connector>
+				<connector uid="9" angle="75.2564">
+					<from>Consumption</from>
+					<to>death_rate</to>
+				</connector>
+				<aux x="477.5" y="324.25" name="resource per person"/>
+				<connector uid="10" angle="314.576">
+					<from>Population</from>
+					<to>resource_per_person</to>
+				</connector>
+				<connector uid="11" angle="59.4">
+					<from>resource_per_person</from>
+					<to>death_rate</to>
+				</connector>
+				<aux x="543.125" y="215.25" name="Base death rate"/>
+				<connector uid="12" angle="183.745">
+					<from>Base_death_rate</from>
+					<to>death_rate</to>
+				</connector>
+				<stacked_container uid="13" x="1185.66" y="215.25">
+					<graph width="350" height="250" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
+							<entity name="Regeneration"/>
+						</plot>
+						<plot color="red" pen_style="dot_dashed" isee:keep_zero_visible="true" pen_width="1" index="1" show_y_axis="true">
+							<entity name="extraction"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<stacked_container uid="14" x="648.617" y="358.001" width="348.984" height="249.382">
+					<graph width="348.984" height="249.382" comparative="true" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
+							<entity name="Population"/>
+						</plot>
+					</graph>
+				</stacked_container>
+				<stacked_container uid="15" x="1191.5" y="487.424">
+					<table width="350" height="250" comparative="true">
+						<item type="time"/>
+						<item>
+							<entity name="Population"/>
+						</item>
+					</table>
+				</stacked_container>
+				<aux x="589.141" y="266.695" name="'Year' to fix\nunits"/>
+				<connector uid="16" angle="159.366">
+					<from>&quot;&apos;Year&apos;_to_fix_units&quot;</from>
+					<to>death_rate</to>
+				</connector>
+				<text_box uid="17" x="175.283" y="467.233" width="343.867" height="106.151">When the birth rate and consumption are both reduced to 1/10 of their original value, there is no collapse, and the population at the end of the simulation is 122.  When the birth rate and consumption are increased to 10x its original value, collapse occurs much quicker, in approximately 2 years.</text_box>
+				<stacked_container uid="18" x="823.109" y="746.982">
+					<graph width="350" height="250" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
+						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
+							<entity name="Population"/>
+						</plot>
+					</graph>
+				</stacked_container>
 			</view>
 		</views>
 	</model>
-	<isee:controls>
-		<isee:control priority="interactive" name="Anomaly_Adjustment" value="0.400728187334459"/>
-		<isee:control priority="interactive" name="Climate_Sensitivity" value="1.19944390977832"/>
-		<isee:control priority="interactive" name="Radiative_Forcing_Parameter" value="2.38409618245364"/>
-	</isee:controls>
 </xmile>
 

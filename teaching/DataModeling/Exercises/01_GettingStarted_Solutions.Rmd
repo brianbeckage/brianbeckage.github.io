@@ -1,0 +1,192 @@
+---
+title: "01_GettingStarted_Solutions"
+output:
+  html_document:
+    df_print: paged
+---
+
+THIS SOLUTION FILE IS A R MARKDOWN NOTEBOOK RATHER THAN AN R SCRIPT.
+
+01-Getting Started
+This exercise is designed to get you familiar with our working environment for R 
+and begin to use R.  This exercise will be graded on a satisfactory/unsatisfactory 
+basis and the expectation is that you make a reasonable  attempt at completing 
+the assignment.  
+
+The solutions will be posted after the due date. Examine the solutions 
+for any aspects of the exercise that you were not able to complete.  
+You are allowed to use AI to help with understanding R coding but you should 
+not cut and paste from AI. You should use AI to help you understand the solution 
+and should type the code into R yourself. 
+
+01-Getting Started is due on 20 Jan at midnight. Download your R file from
+Posit Cloud and turn it in using the Assignment tool in Brightspace, 
+which should appear in your calendar of upcoming due dates in the homepage for
+this class within Brightspace.
+
+
+################################################################################
+Below are a set of short exercises.  These are intended
+to be simple exercises to allow you to become familiar with this learning
+environment before we move onto assignments from the textbook next week.
+
+This flie is a R script, which is a plain text file.  The hash on the left means
+that these lines are comments to be read by people and not the computer.
+
+
+1. Let's compute 2 + 2.  We type 2+2 on the next line and evaluate that line by 
+placing our cursor on line 10 below, then using the pull down menu 'Code' 
+above, then 'run selected line' or 'command return' on my Mac.
+```{r}
+2+2
+```
+
+ the result '4' should appear in the 'Console' window below.
+
+
+2. Create a vector that is a sequence of 1,2,and 3 and assign it to an object
+called myVector by running the following line of code
+```{r}
+rm(list = ls()) # Clear the workspace
+myVector<-c(1,2,3,4,5,6)
+# or
+myVector<-1:6
+
+```
+
+ as you did above in (1).  To see the result, run the following line:
+
+```{r}
+myVector
+```
+
+
+You should see [1] 1 2 3 4 5 6 in the Console window below.  You could also type
+myVector in the Console directly and then hit return.
+
+################################################################################
+Please continue with the exercises below on your own, attempt to complete items
+3 to 17 below. Write your solutions in new lines beneath each item and 
+save this file to download and turn in as described above.
+################################################################################
+
+3. Multiply each element in myVector by 2 and assign this to a new object 
+called myVector2.
+
+```{r}
+myVector2<-myVector*2
+```
+
+
+4 Find the sum of the elements of myVector2.
+
+```{r}
+sum(myVector2)
+```
+
+
+5. Square each element myVector2, call this new vector myVector3 and find 
+the summation of this transformed vector.
+
+```{r}
+myVector3<-myVector^2
+```
+
+
+6.  Make a scatter plot of myVector on the x axis versus myVector3 on the y axis.
+
+```{r}
+plot(x=myVector, y=myVector3)
+```
+
+
+7. Select all elements of the myVector3 that are less than 30.
+
+```{r}
+myVector3[myVector3<30]
+```
+
+8. Create a 3 (rows) by 4 (cols) matrix of values 1:12.
+
+```{r}
+myMat<-matrix(1:12,nrow=3,ncol=4)
+```
+
+9. Multiple the component at the location [2,3] and the component at [3,2].
+
+```{r}
+myMat[2,3]*myMat[3,2]
+```
+
+10. Name the rows (a,b,c) and the columns (1,2,3,4).
+
+```{r}
+rownames(myMat)<-c('a','b','c')
+colnames(myMat)<-c('1','2','3','4')
+myMat
+```
+
+OR
+
+```{r}
+dimnames(myMat)<-list(c('a','b','c'),c('1','2','3','4'))
+myMat
+```
+
+
+11. Create a 3 dimensional array that replicates the matrix created above three 
+times in the 3rd dimension.  Name the dimensions of the array.
+                     
+```{r}
+my3d<-array(c(rep(1:12,3)),dim=c(3,4,3))
+dimnames(my3d)<-list(c('a','b','c'),c('1','2','3','4'),
+                     c('1d','2d','3d'))
+```
+                
+
+12. Multiply the 2nd row of the 2 dimension by the [3,3] element of the 3rd dimension.
+
+```{r}
+my3d[2,,2]*my3d[3,3,3]
+```
+
+
+13. Create a vector of 1's replicated to be a vector of length 10. 
+
+```{r}
+rep(1,10)
+```
+
+14. Create a vector of integers 1 to 100 in steps of 1.
+
+```{r}
+1:100
+```
+OR
+```{r}
+seq(from=1, to=100, by=1)
+```
+
+15. Create a data frame that combines these three vectors (myVector, myVector2,
+and myVector3) into the columns of a dataframe.
+
+```{r}
+myDataFrame<-data.frame(myVector,myVector^2,myVector^3)
+head(myDataFrame)
+```
+
+16. Name the columns of the dataframe as: ‘Original’, 'Modified' and ‘Squared’.
+
+```{r}
+colnames(myDataFrame)<-c('Original', 'Modified', 'Squared')
+head(myDataFrame)
+```
+
+17. Plot the original vs squared columns.
+
+```{r}
+plot(Original~Squared,data=myDataFrame)
+```
+
+
+
