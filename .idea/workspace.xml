@@ -6,12 +6,24 @@
   <component name="ChangeListManager">
     <list default="true" id="497d3d95-ec7f-4b28-9079-fa69f721e47f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/media.html" beforeDir="false" afterPath="$PROJECT_DIR$/media.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/teaching/EcologicalModeling/Solutions/Beckage_Ex7_butterflies_sol.nlogox" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/teaching/EcologicalModeling/Solutions/Beckage_ex8_butterfliesObs_sol.nlogox" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/teaching/EcologicalModeling/Solutions/Corridor-output-for-q-0.2.csv" beforeDir="false" afterPath="$PROJECT_DIR$/teaching/EcologicalModeling/Solutions/Corridor-output-for-q-0.2.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/teaching/HCOL_2000/HCOL2000_schedule.html" beforeDir="false" afterPath="$PROJECT_DIR$/teaching/HCOL_2000/HCOL2000_schedule.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/teaching/HCOL_2000/Solutions/ClimateModel.stmx" beforeDir="false" afterPath="$PROJECT_DIR$/teaching/HCOL_2000/Solutions/ClimateModel.stmx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/teaching/HCOL_2000/Solutions/SimpleCollapseModel.stmx" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="WLInit" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -31,22 +43,23 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/brianbeckage/brianbeckage.github.io/poetry/7f7db9dd169cb44730888330631c84460b3c54e6/MyPoetry&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/brianbeckage/brianbeckage.github.io&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../Library/Mobile Documents/com~apple~CloudDocs/6497851/Users/brianbeckage/Documents/Code/SD_models/Social_Climate_Model/Risk Processing/Analysis/risk_perception_analysis" />
       <recent name="$PROJECT_DIR$/poetry/7f7db9dd169cb44730888330631c84460b3c54e6/MyPoetry" />
       <recent name="$PROJECT_DIR$/poetry/MyHaiku" />
       <recent name="$PROJECT_DIR$/poetry/SomePoetry" />
       <recent name="$PROJECT_DIR$/poetry" />
-      <recent name="$PROJECT_DIR$/teaching/HCOL_2000/Solutions" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/Media" />
@@ -192,6 +205,35 @@
       <workItem from="1731423874179" duration="215000" />
       <workItem from="1731426982852" duration="51000" />
       <workItem from="1731677953161" duration="1044000" />
+      <workItem from="1762788302685" duration="1151000" />
+      <workItem from="1763386202474" duration="5115000" />
+      <workItem from="1764089170887" duration="3458000" />
+      <workItem from="1764351010726" duration="1921000" />
+      <workItem from="1764359368844" duration="820000" />
+      <workItem from="1764426563673" duration="12161000" />
+      <workItem from="1764688302844" duration="631000" />
+      <workItem from="1764704727885" duration="8345000" />
+      <workItem from="1764859678953" duration="651000" />
+      <workItem from="1764860821249" duration="2419000" />
+      <workItem from="1765902058696" duration="1101000" />
+      <workItem from="1767728134338" duration="26937000" />
+      <workItem from="1768317101700" duration="6331000" />
+      <workItem from="1768401232181" duration="1407000" />
+      <workItem from="1769393865943" duration="17062000" />
+      <workItem from="1771292820367" duration="4478000" />
+      <workItem from="1771873893379" duration="2713000" />
+      <workItem from="1772220158491" duration="1946000" />
+      <workItem from="1772330619961" duration="2926000" />
+      <workItem from="1772741156058" duration="4796000" />
+      <workItem from="1773624593799" duration="15772000" />
+      <workItem from="1774275221577" duration="1165000" />
+      <workItem from="1774901915878" duration="5001000" />
+      <workItem from="1775519142728" duration="15616000" />
+      <workItem from="1779288822278" duration="1489000" />
+      <workItem from="1784904954138" duration="274000" />
+      <workItem from="1784905286271" duration="10520000" />
+      <workItem from="1787014250485" duration="2519000" />
+      <workItem from="1787085921612" duration="6471000" />
     </task>
     <servers />
   </component>

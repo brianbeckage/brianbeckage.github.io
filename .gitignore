@@ -1,0 +1,36 @@
+# --- Local-only files: never published to the website / GitHub ---
+/CLAUDE.md
+/CLAUDE.local.md
+/local/
+
+# --- IDE / OS / app scratch files ---
+.idea/
+.DS_Store
+*.isdb
+* alias
+/teaching/HCOL_2000_Spring2024.zip
+/teaching/STELLA tutorial final-*.zip
+
+# --- Student work (FERPA), publisher materials (copyright), local working dirs ---
+/teaching/EcologicalModeling/Students/
+/teaching/HCOL_2000/HW/
+/teaching/EcologicalModeling/Railsback-Grimm_E2_InstructorMaterials_*
+/teaching/STELLA tutorial final/
+/teaching/HCOL_2000/Models/
+/teaching/EcologicalModeling/Archived/
+/teaching/EcologicalModeling/Solutions/Archived/
+/teaching/EcologicalModeling/init.m
+/teaching/GlobalChangeEcology/PBIOXX50_schedule.html
+
+# --- Full-resolution / unused photos kept locally only ---
+/img/eagleMountain_Colchester.1.jpeg
+/img/franconiaNotch_NH.jpeg
+/img/sunsetLedge.jpeg
+/img/sunsetLedgewPI.jpeg
+/img/planetFitnessLastDayBeforeClosing.jpeg
+/img/Denali_GlacierRunOff.JPG
+/img/beckage_20170829.jpg
+/img/enp.landscape.jpg
+/img/IMG_4799.jpeg
+/img/IMG_4971.jpeg
+/myManuscripts/Tang_etal.2014.pdf
