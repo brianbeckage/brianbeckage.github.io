@@ -167,6 +167,17 @@ transform: scaleY(-2) translateY(50%);
     border-bottom: 20px solid black;
 }
 
+/* NSF MPOPHC project page (mpophc.html) */
+.headerMPOPHC {
+    background-color: black;
+    padding: 10%;
+    text-align: center;
+    background-image: url("../img/burlingtonWaterfront_sunset.jpeg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-bottom: 20px solid black;
+}
+
 
 
 /* Headings style  ******************************************************/
@@ -301,6 +312,13 @@ p{font-family: Arial, Helvetica, sans-serif;
     text-align:left;
 }
 
+
+/* Wrapper that lines a block of .citations up with .myPFormat text (first line at
+   ~10% from the left, 10% right margin); used on the project page (mpophc.html) */
+.citationsBlock {
+    margin-left: 6%;
+    margin-right: 10%;
+}
 
 /* unvisited link */
 .citations a:link {
