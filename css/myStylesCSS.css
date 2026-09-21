@@ -313,6 +313,24 @@ p{font-family: Arial, Helvetica, sans-serif;
 }
 
 
+/* In-page section navigation on the project page (mpophc.html): thin rules above and below
+   the row of section links set it apart from the title block and from the first section */
+.sectionNav {
+    border-top: 1px solid darkslategray;
+    border-bottom: 1px solid darkslategray;
+    margin-top: 1%;
+    margin-bottom: 3%;
+}
+.sectionNav td {
+    height: 50px;
+}
+
+/* Presentations table on the project page (a .table4): the title/venue column reads better left-aligned */
+.table4 td.talkTitle {
+    text-align: left;
+    padding: 8px 12px;
+}
+
 /* Wrapper that lines a block of .citations up with .myPFormat text (first line at
    ~10% from the left, 10% right margin); used on the project page (mpophc.html) */
 .citationsBlock {
