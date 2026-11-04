@@ -2,10 +2,10 @@
 <xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
 	<header>
 		<smile version="1.0" namespace="std, isee"/>
-		<name>SimpleCollapseModel</name>
+		<name>SimpleCollapseModel_exercise4</name>
 		<uuid>fe532d7f-1321-4a0f-b927-56ec4397b1c2</uuid>
 		<vendor>isee systems, inc.</vendor>
-		<product version="4.1" isee:build_number="3751" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+		<product version="4.3.1" isee:build_number="3962" isee:saved_by_v1="true" lang="en">Stella Architect</product>
 	</header>
 	<ai_information>
 		<status verified="false"/>
@@ -15,7 +15,14 @@
 		<stop>100</stop>
 		<dt>0.25</dt>
 	</sim_specs>
-	<isee:prefs saved_runs="5" keep="false" show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="false" layer="model" isee:design="" isee:design_custom="false" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rifp="true"/>
+	<isee:prefs saved_runs="5" keep="false" show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="false" layer="model" isee:design="" isee:design_custom="false" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rifp="true">
+		<isee:tag_styles>
+			<isee:tag_style tag="Interface"/>
+			<isee:tag_style tag="Output"/>
+			<isee:tag_style tag="Parameter"/>
+			<isee:tag_style tag="Policy"/>
+		</isee:tag_styles>
+	</isee:prefs>
 	<isee:multiplayer_settings include_chat="true" allow_observers="false" advance_time_increment="1" max_advance_time_in_ms="0" model_stops_when_players_drop="false" observer_start_page="home_page" enabled="false"/>
 	<isee:time_formats default_format="Builtin">
 		<isee:time_format name="Builtin" type="adaptive"/>
@@ -24,8 +31,8 @@
 	<default_format/>
 	<isee:sensi_specs_list active_index="0">
 		<isee:sensi_specs name="Sensitivity" method="sobol_sequence" runs="25">
-			<isee:variable starting_value="0" ending_value="0.2" type="incremental" min="0" max="0.2" seed="12345" name="Birth_rate" num_samples="5"/>
-			<isee:variable starting_value="0" ending_value="0.1" type="incremental" min="0" max="0.1" seed="12345" name="Consumption" num_samples="5"/>
+			<isee:variable starting_value="0" ending_value="0.04" type="incremental" min="0" max="0.04" seed="12345" name="Birth_rate" num_samples="5"/>
+			<isee:variable starting_value="0" ending_value="0.02" type="incremental" min="0" max="0.02" seed="12345" name="Consumption" num_samples="5"/>
 		</isee:sensi_specs>
 	</isee:sensi_specs_list>
 	<isee:optimizer_specs_list active_index="0">
@@ -56,7 +63,7 @@
 				<units>People</units>
 			</stock>
 			<aux name="Consumption">
-				<eqn>0.1</eqn>
+				<eqn>0.01</eqn>
 				<range min="0" max="0.1"/>
 				<units>unit resource/People/Years</units>
 			</aux>
@@ -93,12 +100,12 @@
 				<units>People/Years</units>
 			</flow>
 			<aux name="death rate">
-				<eqn>Base_death_rate*SAFEDIV(Consumption*&quot;&apos;Year&apos;_to_fix_units&quot;, resource_per_person, INF)</eqn>
+				<eqn>Base_death_rate*SAFEDIV(Consumption*one_year, resource_per_person, INF)</eqn>
 				<range min="0" max="1"/>
 				<units>People/People/Year</units>
 			</aux>
 			<aux name="Birth rate">
-				<eqn>0.2</eqn>
+				<eqn>0.02</eqn>
 				<range min="0" max="0.1"/>
 				<units>People/People/Year</units>
 			</aux>
@@ -111,7 +118,7 @@
 				<range min="0" max="0.1"/>
 				<units>People/People/Year</units>
 			</aux>
-			<aux name="'Year' to fix\nunits">
+			<aux name="one year">
 				<eqn>1</eqn>
 				<units>Years</units>
 			</aux>
@@ -164,7 +171,7 @@
 				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
 				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
 			</style>
-			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_x="33.3333" isee:scroll_y="131.667" zoom="120" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_y="51.25" zoom="80" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
 				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
 					<stock color="blue" background="white" font_color="blue" font_size="12pt" label_side="top">
 						<shape type="rectangle" width="45" height="35"/>
@@ -294,7 +301,7 @@
 					<from>Base_death_rate</from>
 					<to>death_rate</to>
 				</connector>
-				<stacked_container uid="13" x="1185.66" y="215.25">
+				<stacked_container uid="13" x="820" y="476.046">
 					<graph width="350" height="250" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
 						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
 							<entity name="Regeneration"/>
@@ -304,14 +311,7 @@
 						</plot>
 					</graph>
 				</stacked_container>
-				<stacked_container uid="14" x="648.617" y="358.001" width="348.984" height="249.382">
-					<graph width="348.984" height="249.382" comparative="true" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
-						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
-							<entity name="Population"/>
-						</plot>
-					</graph>
-				</stacked_container>
-				<stacked_container uid="15" x="1191.5" y="487.424">
+				<stacked_container uid="15" x="1189.05" y="480.446">
 					<table width="350" height="250" comparative="true">
 						<item type="time"/>
 						<item>
@@ -319,19 +319,14 @@
 						</item>
 					</table>
 				</stacked_container>
-				<aux x="589.141" y="266.695" name="'Year' to fix\nunits"/>
+				<aux x="589.141" y="266.695" name="one year"/>
 				<connector uid="16" angle="159.366">
-					<from>&quot;&apos;Year&apos;_to_fix_units&quot;</from>
+					<from>one_year</from>
 					<to>death_rate</to>
 				</connector>
-				<text_box uid="17" x="175.283" y="467.233" width="343.867" height="106.151">When the birth rate and consumption are both reduced to 1/10 of their original value, there is no collapse, and the population at the end of the simulation is 122.  When the birth rate and consumption are increased to 10x its original value, collapse occurs much quicker, in approximately 2 years.</text_box>
-				<stacked_container uid="18" x="823.109" y="746.982">
-					<graph width="350" height="250" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
-						<plot color="blue" isee:keep_zero_visible="true" pen_width="1" index="0" show_y_axis="true">
-							<entity name="Population"/>
-						</plot>
-					</graph>
-				</stacked_container>
+				<text_box uid="17" x="175.283" y="467.233" width="430" height="250">Sensitivity analysis by hand (item 2). When the birth rate and consumption are both reduced to 1/10 of their default values, there is no collapse, and the population at the end of the simulation is 122. When both are increased to 10 times their default values, collapse occurs much sooner, in approximately 2 years.
+
+Factorial sensitivity analysis (item 3). In the 5 x 5 factorial run (birth rate 0 to 0.04, consumption 0 to 0.02), 8 of the 25 runs persist to year 100: the five runs with consumption 0 (no extraction, so no deaths), plus the three low-pressure runs with birth rate 0 and consumption 0.005 or 0.01, and birth rate 0.01 with consumption 0.005. Every other run collapses, and the collapse comes sooner as either rate rises: at the default birth rate of 0.02, raising consumption from 0.005 to 0.02 shortens the time to collapse from about 77 to 10 years, and at the default consumption of 0.01, raising the birth rate from 0.01 to 0.04 shortens it from about 48 to 22 years. The fastest collapse, about 9 years, is at the high corner of the table (birth rate 0.04, consumption 0.02).</text_box>
 			</view>
 		</views>
 	</model>

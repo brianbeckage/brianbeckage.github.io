@@ -111,15 +111,21 @@
 				<units>People/People/Year</units>
 			</aux>
 			<aux name="consumption to\nresource ratio">
-				<eqn>SAFEDIV(Consumption, resource_per_person, INF)</eqn>
+				<eqn>SAFEDIV(Consumption*one_year, resource_per_person, INF)</eqn>
+				<units>Dimensionless</units>
 			</aux>
 			<aux name="death rate multiplier">
 				<eqn>consumption_to_resource_ratio</eqn>
 				<gf>
 					<xscale min="0" max="2"/>
-					<yscale min="1" max="2"/>
-					<ypts>1.99330714907572,1.98201379003791,1.95257412682243,1.88079707797788,1.73105857863,1.5,1.26894142137,1.11920292202212,1.04742587317757,1.01798620996209,1.00669285092429</ypts>
+					<yscale min="1" max="3"/>
+					<ypts>1.0133857018486,1.0359724199242,1.0948517463551,1.2384058440442,1.53788284274,2,2.46211715726,2.7615941559558,2.9051482536449,2.9640275800758,2.9866142981514</ypts>
 				</gf>
+				<units>Dimensionless</units>
+			</aux>
+			<aux name="one year">
+				<eqn>1</eqn>
+				<units>Years</units>
 			</aux>
 		</variables>
 		<views>
@@ -278,6 +284,7 @@
 					<to>death_rate</to>
 				</connector>
 				<aux x="573.125" y="317.5" name="consumption to\nresource ratio"/>
+				<aux x="655" y="352" name="one year"/>
 				<connector uid="12" angle="17.9044">
 					<from>resource_per_person</from>
 					<to>consumption_to_resource_ratio</to>
@@ -294,6 +301,10 @@
 				<connector uid="15" angle="174.357">
 					<from>death_rate_multiplier</from>
 					<to>death_rate</to>
+				</connector>
+				<connector uid="24" angle="160">
+					<from>one_year</from>
+					<to>consumption_to_resource_ratio</to>
 				</connector>
 				<stacked_container uid="20" x="891.667" y="285" visible_index="2">
 					<graph width="350" height="250" comparative="true" type="time_series" show_grid="false" isee:tick_type="none" include_units_in_legend="false" plot_numbers="false" isee:label_pie_slices="false" isee:show_pie_borders="true" num_x_grid_lines="0" num_y_grid_lines="0" num_x_labels="5" num_y_labels="3" isee:fill_intensity="0.1" isee:allow_zero_axis="true" left_axis_multi_scale="false" left_axis_auto_scale="true" left_include_units="true" right_axis_multi_scale="false" right_axis_auto_scale="true" right_include_units="true">
