@@ -30,7 +30,7 @@
 	<isee:number_format_extenders/>
 	<default_format/>
 	<isee:sensi_specs_list active_index="0">
-		<isee:sensi_specs name="Sensitivity" method="sobol_sequence" runs="25">
+		<isee:sensi_specs name="Sensitivity" method="grid">
 			<isee:variable starting_value="0" ending_value="0.04" type="incremental" min="0" max="0.04" seed="12345" name="Birth_rate" num_samples="5"/>
 			<isee:variable starting_value="0" ending_value="0.02" type="incremental" min="0" max="0.02" seed="12345" name="Consumption" num_samples="5"/>
 		</isee:sensi_specs>
@@ -171,7 +171,7 @@
 				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
 				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
 			</style>
-			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_y="51.25" zoom="80" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+			<view isee:show_pages="false" background="white" page_width="743" page_height="594" isee:page_cols="2" isee:page_rows="2" isee:scroll_y="87.5" zoom="80" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
 				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
 					<stock color="blue" background="white" font_color="blue" font_size="12pt" label_side="top">
 						<shape type="rectangle" width="45" height="35"/>
@@ -324,7 +324,7 @@
 					<from>one_year</from>
 					<to>death_rate</to>
 				</connector>
-				<text_box uid="17" x="175.283" y="467.233" width="430" height="250">Sensitivity analysis by hand (item 2). When the birth rate and consumption are both reduced to 1/10 of their default values, there is no collapse, and the population at the end of the simulation is 122. When both are increased to 10 times their default values, collapse occurs much sooner, in approximately 2 years.
+				<text_box uid="17" x="175.283" y="467.233" width="430" height="330">Sensitivity analysis by hand (item 2). When the birth rate alone is reduced to 1/10 of its default value, there is no collapse, and the population at the end of the simulation is 107. When it is increased to 10 times its default value, collapse occurs much sooner, in about 9 years. When consumption alone is reduced to 1/10 of its default value, there is no collapse, and the population at the end of the simulation is 716. When it is increased to 10 times its default value, collapse occurs in approximately 2 years. When the birth rate and consumption are both reduced to 1/10 of their default values, there is no collapse, and the population at the end of the simulation is 122. When both are increased to 10 times their default values, collapse occurs much sooner, in approximately 2 years.
 
 Factorial sensitivity analysis (item 3). In the 5 x 5 factorial run (birth rate 0 to 0.04, consumption 0 to 0.02), 8 of the 25 runs persist to year 100: the five runs with consumption 0 (no extraction, so no deaths), plus the three low-pressure runs with birth rate 0 and consumption 0.005 or 0.01, and birth rate 0.01 with consumption 0.005. Every other run collapses, and the collapse comes sooner as either rate rises: at the default birth rate of 0.02, raising consumption from 0.005 to 0.02 shortens the time to collapse from about 77 to 10 years, and at the default consumption of 0.01, raising the birth rate from 0.01 to 0.04 shortens it from about 48 to 22 years. The fastest collapse, about 9 years, is at the high corner of the table (birth rate 0.04, consumption 0.02).</text_box>
 			</view>
